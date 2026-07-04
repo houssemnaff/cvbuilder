@@ -1,0 +1,175 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import { Plus, Trash2, Briefcase } from "lucide-react"
+import { AITextImprover } from "@/components/ui/ai-text-improver"
+
+interface Experience {
+  id: string
+  position: string
+  company: string
+  location: string
+  startDate: string
+  endDate: string
+  current: boolean
+  description: string
+}
+
+export function ExperienceSection() {
+  const { toast } = useToast()
+  const [experiences, setExperiences] = useState<Experience[]>([])
+  const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem("profile_experiences")
+    if (saved) {
+      setExperiences(JSON.parse(saved))
+    }
+  }, [])
+
+  const saveExperiences = (newExperiences: Experience[]) => {
+    setExperiences(newExperiences)
+    localStorage.setItem("profile_experiences", JSON.stringify(newExperiences))
+    toast({
+      title: "Expériences sauvegardées",
+      description: "Vos expériences professionnelles ont été enregistrées.",
+    })
+  }
+
+  const addExperience = () => {
+    const newExperience: Experience = {
+      id: Date.now().toString(),
+      position: "",
+      company: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      current: false,
+      description: "",
+    }
+    saveExperiences([...experiences, newExperience])
+    setIsAdding(false)
+  }
+
+  const updateExperience = (id: string, field: keyof Experience, value: string | boolean) => {
+    const updated = experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
+    saveExperiences(updated)
+  }
+
+  const deleteExperience = (id: string) => {
+    saveExperiences(experiences.filter((exp) => exp.id !== id))
+  }
+
+  return (
+    <div className="space-y-4">
+      {experiences.length === 0 && !isAdding && (
+        <div className="text-center py-8 text-muted-foreground">
+          <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p>Aucune expérience ajoutée</p>
+        </div>
+      )}
+
+      {experiences.map((exp) => (
+        <Card key={exp.id}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-base font-medium">
+              {exp.position || "Nouvelle expérience"} {exp.company && `- ${exp.company}`}
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => deleteExperience(exp.id)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Poste</Label>
+                <Input
+                  value={exp.position}
+                  onChange={(e) => updateExperience(exp.id, "position", e.target.value)}
+                  placeholder="Développeur Full Stack"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Entreprise</Label>
+                <Input
+                  value={exp.company}
+                  onChange={(e) => updateExperience(exp.id, "company", e.target.value)}
+                  placeholder="Tech Corp"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Lieu</Label>
+              <Input
+                value={exp.location}
+                onChange={(e) => updateExperience(exp.id, "location", e.target.value)}
+                placeholder="Paris, France"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Date de début</Label>
+                <Input
+                  type="month"
+                  value={exp.startDate}
+                  onChange={(e) => updateExperience(exp.id, "startDate", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Date de fin</Label>
+                <Input
+                  type="month"
+                  value={exp.endDate}
+                  onChange={(e) => updateExperience(exp.id, "endDate", e.target.value)}
+                  disabled={exp.current}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`current-${exp.id}`}
+                    checked={exp.current}
+                    onChange={(e) => updateExperience(exp.id, "current", e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <label htmlFor={`current-${exp.id}`} className="text-sm">
+                    Poste actuel
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Description et responsabilités</Label>
+                <AITextImprover
+                  originalText={exp.description}
+                  context="professional experience"
+                  onApply={(improvedText) => updateExperience(exp.id, "description", improvedText)}
+                />
+              </div>
+              <Textarea
+                value={exp.description}
+                onChange={(e) => updateExperience(exp.id, "description", e.target.value)}
+                placeholder="Décrivez vos missions, responsabilités et réalisations..."
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
+      <Button onClick={addExperience} variant="outline" className="w-full bg-transparent">
+        <Plus className="h-4 w-4 mr-2" />
+        Ajouter une expérience
+      </Button>
+    </div>
+  )
+}
