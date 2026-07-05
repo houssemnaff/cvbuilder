@@ -1,18 +1,4 @@
-import OpenAI from 'openai'
-
-// Configuration
-const DEFAULT_MODEL = 'kwaipilot/kat-coder-pro:free'
-const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1'
-
-// Initialiser le client OpenAI pour OpenRouter
-const openai = new OpenAI({
-  apiKey:  "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",
-  baseURL: DEFAULT_BASE_URL,
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    "X-Title": "CV Builder AI Assistant"
-  }
-})
+import { chatComplete } from '@/lib/openrouter'
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +11,7 @@ export async function POST(request: Request) {
     const languageInstruction = language === "en" ? "in English" : "en français"
     const contextInstruction = context ? `This is for a ${context} section of a CV.` : ""
 
-    const prompt = `You are a professional CV writing assistant. Generate 2 different professional variations of the following text ${languageInstruction}.
+    const prompt = `You are a professional CV writing assistant. Generate 3 different professional variations of the following text ${languageInstruction}.
 ${contextInstruction}
 
 Requirements:
@@ -33,41 +19,32 @@ Requirements:
 - Use action verbs and highlight achievements
 - Make them concise and ATS-friendly
 - Each variation should have a slightly different style or emphasis
-- Number each suggestion from 1 to 2
+- Plain text only: no markdown, no bold, no bullet points, no headings — each variation is a single paragraph
 
 Original text:
 ${text}
 
-Generate 10 professional variations (numbered 1-10):`
+Respond with strict JSON in this exact shape, nothing else: {"suggestions": ["variation 1", "variation 2", "variation 3"]}`
 
-    // Utiliser directement le client OpenAI comme dans votre service NestJS
-    const response = await openai.chat.completions.create({
-      model: DEFAULT_MODEL, // ou "openai/gpt-4o-mini" selon votre préférence
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.8,
-     // max_tokens: 2000
-    })
+    const generatedText = await chatComplete(prompt, { temperature: 0.8, jsonResponse: true })
 
-    const generatedText = response.choices[0]?.message?.content || ""
-
-    // Parse the suggestions
-    const suggestions = generatedText
-      .split(/\d+\.\s+/)
-      .filter((s:any) => s.trim())
-      .map((s:any) => s.trim())
-      .slice(0, 10)
+    let suggestions: string[] = []
+    try {
+      const parsed = JSON.parse(generatedText)
+      if (Array.isArray(parsed?.suggestions)) {
+        suggestions = parsed.suggestions.filter((s: unknown) => typeof s === "string" && s.trim())
+      }
+    } catch (parseError) {
+      console.error("[generate-suggestions] Failed to parse JSON:", generatedText)
+      throw new Error("Invalid JSON response from AI")
+    }
 
     return Response.json({ suggestions })
   } catch (error: any) {
     console.error("[OpenRouter] Error generating suggestions:", error)
-    return Response.json({ 
+    return Response.json({
       error: "Erreur lors de la génération des suggestions",
-      details: error.message 
+      details: error.message
     }, { status: 500 })
   }
 }

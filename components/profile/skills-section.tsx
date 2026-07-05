@@ -2,33 +2,44 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, X, Wrench } from "lucide-react"
+import type { SectionHandle } from "./section-handle"
+import { useProfile } from "./profile-provider"
 
-export function SkillsSection() {
+export const SkillsSection = forwardRef<SectionHandle>(function SkillsSection(_props, ref) {
   const { toast } = useToast()
+  const { profile, error, saveSkills: persistSkills } = useProfile()
   const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
 
   useEffect(() => {
-    const saved = localStorage.getItem("profile_skills")
-    if (saved) {
-      setSkills(JSON.parse(saved))
+    if (profile) {
+      setSkills(profile.skills)
     }
-  }, [])
+  }, [profile])
 
-  const saveSkills = (newSkills: string[]) => {
+  const saveSkills = async (newSkills: string[]) => {
     setSkills(newSkills)
-    localStorage.setItem("profile_skills", JSON.stringify(newSkills))
-    toast({
-      title: "Compétences sauvegardées",
-      description: "Vos compétences ont été enregistrées.",
-    })
+    try {
+      await persistSkills(newSkills)
+      toast({
+        title: "Compétences sauvegardées",
+        description: "Vos compétences ont été enregistrées.",
+      })
+    } catch (err) {
+      console.error("[SkillsSection] Failed to save:", err)
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
+        variant: "destructive",
+      })
+    }
   }
 
   const addSkill = () => {
@@ -42,11 +53,19 @@ export function SkillsSection() {
     saveSkills(skills.filter((s) => s !== skill))
   }
 
+  useImperativeHandle(ref, () => ({
+    save: () => saveSkills(skills),
+  }))
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault()
       addSkill()
     }
+  }
+
+  if (error) {
+    return <p className="text-sm text-destructive">Impossible de charger les compétences : {error}</p>
   }
 
   return (
@@ -91,4 +110,4 @@ export function SkillsSection() {
       </div>
     </div>
   )
-}
+})

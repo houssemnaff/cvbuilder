@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(xargs grep -l \"generate\")",
+      "Bash(cp \"C:\\\\Users\\\\houssem\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--wireframe2code-cvbuilder-cvbuilder\\\\b5e389e2-da42-4543-acc5-77fe59cc79af\\\\scratchpad\\\\test-pdf.mjs\" ./_tmp_test_pdf.mjs)",
+      "Bash(timeout 40 npx tsx ./_tmp_test_pdf.mjs)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(timeout 60 npx tsx ./_tmp_test_pdf.mjs)",
+      "Bash(grep -n \"\\\\\"style\\\\\"\\\\|\\\\\"sideEffects\\\\\"\\\\|\\\\\\\\.css\" node_modules/@pdfme/ui/package.json)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

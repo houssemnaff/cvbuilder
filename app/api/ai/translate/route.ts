@@ -1,15 +1,5 @@
-import OpenAI from 'openai'
 import { NextRequest, NextResponse } from 'next/server'
-
-// Configuration OpenAI pour OpenRouter
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || "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",
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": process.env.OPENROUTER_REFERER_URL || "http://localhost:3000",
-    "X-Title": process.env.OPENROUTER_APP_NAME || "CV Translator",
-  },
-})
+import { chatComplete } from '@/lib/openrouter'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,29 +38,16 @@ ${text}
 
 Professional translation in ${languageName}:`
 
-    const response = await openai.chat.completions.create({
-      model: "kwaipilot/kat-coder-pro:free", // Vous pouvez aussi utiliser "openai/gpt-3.5-turbo"
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.5,
-      max_tokens: 2000
-    })
-
-    const translatedText = response.choices[0]?.message?.content?.trim() || ""
+    const translatedText = (await chatComplete(prompt, { temperature: 0.5, maxTokens: 2000 })).trim()
 
     if (!translatedText) {
       throw new Error("No translation received from AI")
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       translatedText,
       originalLanguage: detectLanguage(text),
       targetLanguage: languageName,
-      model: response.model
     })
 
   } catch (error: any) {

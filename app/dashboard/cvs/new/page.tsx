@@ -5,51 +5,39 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Check, Loader2 } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import { TEMPLATES } from "@/lib/cv-templates"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
+import { TemplateGalleryPreview } from "@/components/cv/template-gallery-preview"
+import { authService, type AuthUser } from "@/lib/services/auth-service"
+import { cvService } from "@/lib/services/cv-service"
+
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((template) => template.available)
 
 export default function NewCVPage() {
   const router = useRouter()
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    console.log("[v0] NewCVPage mounting, checking user auth")
-    const userData = localStorage.getItem("user")
-    console.log("[v0] User data from localStorage:", userData)
-
-    if (!userData) {
-      console.log("[v0] No user found, redirecting to login")
-      router.push("/login")
-    } else {
-      const parsedUser = JSON.parse(userData)
-      console.log("[v0] User authenticated:", parsedUser)
-      setUser(parsedUser)
-      setIsLoading(false)
-    }
+    authService.getCurrentUser().then((currentUser) => {
+      if (!currentUser) {
+        router.push("/login")
+      } else {
+        setUser(currentUser)
+        setIsLoading(false)
+      }
+    })
   }, [router])
 
-  const createCV = () => {
+  const createCV = async () => {
     if (!selectedTemplate) return
 
-    console.log(" Creating CV with template:", selectedTemplate)
-    const newCV = {
-      id: Date.now().toString(),
-      name: `CV ${TEMPLATES.find((t) => t.id === selectedTemplate)?.name}`,
-      templateId: selectedTemplate,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
+    const templateName = TEMPLATES.find((t) => t.id === selectedTemplate)?.name
+    const newCv = await cvService.createCv(`CV ${templateName}`, selectedTemplate)
 
-    const savedCvs = localStorage.getItem("user_cvs")
-    const cvs = savedCvs ? JSON.parse(savedCvs) : []
-    cvs.push(newCV)
-    localStorage.setItem("user_cvs", JSON.stringify(cvs))
-    console.log("[v0] CV created, redirecting to:", `/dashboard/cvs/${newCV.id}`)
-
-    router.push(`/dashboard/cvs/${newCV.id}`)
+    router.push(`/dashboard/cvs/${newCv.id}`)
   }
 
   if (isLoading) {
@@ -81,7 +69,7 @@ export default function NewCVPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {TEMPLATES.map((template) => (
+            {AVAILABLE_TEMPLATES.map((template) => (
               <Card
                 key={template.id}
                 className={`cursor-pointer transition-all hover:shadow-lg ${
@@ -103,9 +91,7 @@ export default function NewCVPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-[3/4] bg-muted rounded border border-border flex items-center justify-center">
-                    <FileText className="h-16 w-16 text-muted-foreground" />
-                  </div>
+                  <TemplateGalleryPreview template={template} />
                   <div className="mt-4 flex gap-2 flex-wrap">
                     {template.tags.map((tag) => (
                       <span key={tag} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">

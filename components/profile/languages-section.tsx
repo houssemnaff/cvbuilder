@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,12 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, Languages } from "lucide-react"
-
-interface Language {
-  id: string
-  name: string
-  level: string
-}
+import type { SectionHandle } from "./section-handle"
+import type { Language } from "@/lib/services/profile-service"
+import { useProfile } from "./profile-provider"
 
 const LEVELS = [
   { value: "beginner", label: "Débutant" },
@@ -23,29 +20,38 @@ const LEVELS = [
   { value: "native", label: "Langue maternelle" },
 ]
 
-export function LanguagesSection() {
+export const LanguagesSection = forwardRef<SectionHandle>(function LanguagesSection(_props, ref) {
   const { toast } = useToast()
+  const { profile, error, saveLanguages: persistLanguages } = useProfile()
   const [languages, setLanguages] = useState<Language[]>([])
 
   useEffect(() => {
-    const saved = localStorage.getItem("profile_languages")
-    if (saved) {
-      setLanguages(JSON.parse(saved))
+    if (profile) {
+      setLanguages(profile.languages)
     }
-  }, [])
+  }, [profile])
 
-  const saveLanguages = (newLanguages: Language[]) => {
+  const saveLanguages = async (newLanguages: Language[]) => {
     setLanguages(newLanguages)
-    localStorage.setItem("profile_languages", JSON.stringify(newLanguages))
-    toast({
-      title: "Langues sauvegardées",
-      description: "Vos langues ont été enregistrées.",
-    })
+    try {
+      await persistLanguages(newLanguages)
+      toast({
+        title: "Langues sauvegardées",
+        description: "Vos langues ont été enregistrées.",
+      })
+    } catch (err) {
+      console.error("[LanguagesSection] Failed to save:", err)
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
+        variant: "destructive",
+      })
+    }
   }
 
   const addLanguage = () => {
     const newLanguage: Language = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: "",
       level: "intermediate",
     }
@@ -59,6 +65,14 @@ export function LanguagesSection() {
 
   const deleteLanguage = (id: string) => {
     saveLanguages(languages.filter((lang) => lang.id !== id))
+  }
+
+  useImperativeHandle(ref, () => ({
+    save: () => saveLanguages(languages),
+  }))
+
+  if (error) {
+    return <p className="text-sm text-destructive">Impossible de charger les langues : {error}</p>
   }
 
   return (
@@ -111,4 +125,4 @@ export function LanguagesSection() {
       </Button>
     </div>
   )
-}
+})

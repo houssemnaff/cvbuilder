@@ -5,14 +5,16 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { FileText, LayoutTemplate, User, LogOut, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { authService } from "@/lib/services/auth-service"
 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const router = useRouter()
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
+  const handleLogout = async () => {
+    await authService.signOut()
     router.push("/")
+    router.refresh()
   }
 
   const navItems = [

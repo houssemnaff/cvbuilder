@@ -89,11 +89,11 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Assistant IA d'écriture</DialogTitle>
             <DialogDescription>
-              L'IA génère 10 suggestions professionnelles. Choisissez celle qui vous convient le mieux.
+              L'IA génère 3 suggestions professionnelles. Choisissez celle qui vous convient le mieux.
             </DialogDescription>
           </DialogHeader>
 
@@ -107,7 +107,7 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
               <div className="flex items-center justify-center py-12 bg-muted rounded-md">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 <span className="ml-2 text-sm text-muted-foreground">
-                  L'IA génère 10 suggestions professionnelles...
+                  L'IA génère 3 suggestions professionnelles...
                 </span>
               </div>
             )}
@@ -151,7 +151,7 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="sticky bottom-0 flex justify-end gap-2 bg-background pt-2">
               <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="bg-transparent">
                 Annuler
               </Button>
@@ -163,7 +163,7 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
                 className="bg-transparent"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Régénérer 10 nouvelles
+                Régénérer 3 nouvelles
               </Button>
               <Button type="button" onClick={handleApply} disabled={selectedIndex === null || isLoading}>
                 Appliquer la sélection

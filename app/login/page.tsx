@@ -10,23 +10,29 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText } from "lucide-react"
+import { authService } from "@/lib/services/auth-service"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
 
-    // TODO: Implement real authentication
-    // For now, simulate login and redirect to dashboard
-    setTimeout(() => {
-      localStorage.setItem("user", JSON.stringify({ email }))
+    try {
+      await authService.signIn(email, password)
       router.push("/dashboard")
-    }, 1000)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de se connecter")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -65,6 +71,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full" disabled={isLoading}>

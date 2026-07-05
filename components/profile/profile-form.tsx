@@ -1,56 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
+import type { SectionHandle } from "./section-handle"
+import type { PersonalInfo } from "@/lib/services/profile-service"
+import { useProfile } from "./profile-provider"
 
-interface PersonalInfo {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  postalCode: string
-  country: string
-  linkedin: string
-  website: string
-  summary: string
+const EMPTY_PERSONAL_INFO: PersonalInfo = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  postalCode: "",
+  country: "",
+  linkedin: "",
+  website: "",
+  summary: "",
 }
 
-export function ProfileForm() {
+export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props, ref) {
   const { toast } = useToast()
-  const [formData, setFormData] = useState<PersonalInfo>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    postalCode: "",
-    country: "",
-    linkedin: "",
-    website: "",
-    summary: "",
-  })
+  const { profile, error, savePersonalInfo } = useProfile()
+  const [formData, setFormData] = useState<PersonalInfo>(EMPTY_PERSONAL_INFO)
 
   useEffect(() => {
-    const saved = localStorage.getItem("profile_personal")
-    if (saved) {
-      setFormData(JSON.parse(saved))
+    if (profile) {
+      setFormData(profile.personalInfo)
     }
-  }, [])
+  }, [profile])
 
-  const handleSave = () => {
-    localStorage.setItem("profile_personal", JSON.stringify(formData))
-    toast({
-      title: "Profil sauvegardé",
-      description: "Vos informations personnelles ont été enregistrées.",
-    })
+  useImperativeHandle(ref, () => ({
+    save: async () => {
+      try {
+        await savePersonalInfo(formData)
+        toast({
+          title: "Profil sauvegardé",
+          description: "Vos informations personnelles ont été enregistrées.",
+        })
+      } catch (err) {
+        console.error("[ProfileForm] Failed to save:", err)
+        toast({
+          title: "Erreur",
+          description: err instanceof Error ? err.message : "Impossible de sauvegarder le profil.",
+          variant: "destructive",
+        })
+      }
+    },
+  }))
+
+  if (error) {
+    return <p className="text-sm text-destructive">Impossible de charger le profil : {error}</p>
   }
 
   return (
@@ -181,10 +186,6 @@ export function ProfileForm() {
           professionnelle.
         </p>
       </div>
-
-      <Button onClick={handleSave} className="w-full md:w-auto">
-        Sauvegarder
-      </Button>
     </div>
   )
-}
+})

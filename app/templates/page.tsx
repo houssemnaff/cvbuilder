@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, ArrowLeft } from "lucide-react"
 import { TEMPLATES } from "@/lib/cv-templates"
+import { TemplateGalleryPreview } from "@/components/cv/template-gallery-preview"
+
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((template) => template.available)
 
 export default function TemplatesPage() {
   return (
@@ -43,16 +46,14 @@ export default function TemplatesPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {TEMPLATES.map((template) => (
+            {AVAILABLE_TEMPLATES.map((template) => (
               <Card key={template.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle>{template.name}</CardTitle>
                   <CardDescription>{template.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-[3/4] bg-muted rounded border border-border flex items-center justify-center mb-4">
-                    <FileText className="h-16 w-16 text-muted-foreground" />
-                  </div>
+                  <TemplateGalleryPreview template={template} />
                   <div className="flex gap-2 flex-wrap mb-4">
                     {template.tags.map((tag) => (
                       <span key={tag} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">

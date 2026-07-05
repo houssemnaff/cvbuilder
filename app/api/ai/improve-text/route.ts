@@ -1,4 +1,4 @@
-import { generateText } from "ai"
+import { chatComplete } from "@/lib/openrouter"
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const languageInstruction = language === "en" ? "in English" : "en français"
     const contextInstruction = context ? `Context: This text is for a ${context} section of a CV.` : ""
 
-    const prompt = `You are a professional CV writing assistant. Rewrite the following text in a professional, clear, and impactful way ${languageInstruction}. 
+    const prompt = `You are a professional CV writing assistant. Rewrite the following text in a professional, clear, and impactful way ${languageInstruction}.
 ${contextInstruction}
 Make it concise, highlight achievements and responsibilities using action verbs, and ensure it's ATS-friendly.
 
@@ -20,15 +20,11 @@ ${text}
 
 Rewritten professional version:`
 
-    const { text: improvedText } = await generateText({
-      model: "openai/gpt-4o-mini",
-      prompt,
-      temperature: 0.7,
-    })
+    const improvedText = await chatComplete(prompt, { temperature: 0.7 })
 
     return Response.json({ improvedText: improvedText.trim() })
   } catch (error) {
-    console.error("[v0] Error improving text:", error)
+    console.error("[improve-text] Error improving text:", error)
     return Response.json({ error: "Erreur lors de l'amélioration du texte" }, { status: 500 })
   }
 }

@@ -1,185 +1,179 @@
+/** @jsxImportSource @pdfme/jsx */
 import type { ProfileData } from "../cv-preview"
+import { Document, Page, Stack, Row, Box, Text, MultiVariableText, Footer } from "@pdfme/jsx"
 
 interface TemplateProps {
   data: ProfileData
 }
 
+// Ligne horizontale fine (pas de composant Line natif → Box utilisé comme séparateur)
+function HR() {
+  return <Box  height={0.3} background="#d1d5db" />
+}
+
 export function AcademicTemplate({ data }: TemplateProps) {
   const { personal, experiences, education, skills, languages } = data
 
+  const fullName = `${personal.firstName} ${personal.lastName}`.trim()
+  const contactLine1 = [personal.address, personal.city, personal.postalCode, personal.country]
+    .filter(Boolean)
+    .join(", ")
+
   return (
-    <div className="bg-white text-gray-900 max-w-5xl mx-auto p-8" id="cv-content-container">
-      {/* Header académique */}
-      <div className="text-center mb-8 pb-6 border-b-2 border-blue-800" data-cv-block="header">
-        <h1 className="text-4xl font-bold text-blue-900 mb-3">
-          {personal.firstName} {personal.lastName}
-        </h1>
-        <div className="text-lg text-gray-700 mb-4">
-          PhD, Researcher & Academic Professional
-        </div>
-        
-        {/* Contact académique */}
-        <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-600">
-          {personal.email && <span>✉ {personal.email}</span>}
-          {personal.phone && <span>• ☎ {personal.phone}</span>}
-          {personal. city && <span>• 📍 {personal.city}, {personal.country}</span>}
-          {personal.linkedin && <span>• 🔗 LinkedIn</span>}
-          <span>• 📚 ORCID:  0000-0000-0000-0000</span>
-        </div>
-      </div>
+    <Document size="A4" margin={{ x: 18, y: 16 }}>
+      <Footer>
+        <Text size={7} align="right" color="#94a3b8">
+          {"Page {currentPage} of {totalPages}"}
+        </Text>
+      </Footer>
 
-      {/* Research Interests */}
-      {personal.summary && (
-        <div className="mb-8" data-cv-block="summary">
-          <h2 className="text-2xl font-bold text-blue-900 mb-4 pb-2 border-b-2 border-blue-200">
-            RESEARCH INTERESTS
-          </h2>
-          <p className="text-gray-700 leading-relaxed text-justify">
-            {personal.summary}
-          </p>
-        </div>
-      )}
+      <Page>
+        <Stack gap={5}>
+          {/* Header — nom centré, majuscules espacées */}
+          <Stack gap={4} alignItems="center">
+            <Text name="fullName" size={24} color="#111827" align="center">
+              {fullName.toUpperCase()}
+            </Text>
+            <HR />
+          </Stack>
 
-      {/* Education - Section principale pour académiques */}
-      {education. length > 0 && (
-        <div className="mb-8" data-cv-block="education-title">
-          <h2 className="text-2xl font-bold text-blue-900 mb-4 pb-2 border-b-2 border-blue-200">
-            EDUCATION
-          </h2>
-          
-          <div className="space-y-6">
-            {education.map((edu) => (
-              <div key={edu.id} className="pl-6 border-l-4 border-blue-300" data-cv-block={`education-${edu.id}`}>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800">{edu.degree}</h3>
-                    <p className="text-lg font-semibold text-blue-700">{edu.institution}</p>
-                    <p className="text-base text-gray-600">{edu.location}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-medium">
-                      {edu.startDate} - {edu. endDate}
-                    </span>
-                  </div>
-                </div>
-                
-                {edu.description && (
-                  <div className="mt-3 bg-blue-50 p-4 rounded">
-                    <p className="text-gray-700 italic">Dissertation: {edu.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+          {/* PROFIL + CONTACT côte à côte */}
+          <Row gap={10}>
+            {personal.summary && (
+              <Box flex={1.4}>
+                <Stack gap={2}>
+                  <Text size={11} color="#111827">PROFIL</Text>
+                  <Text name="summaryBlock" size={9} lineHeight={1.5} color="#374151" overflow="expand">
+                    {personal.summary}
+                  </Text>
+                </Stack>
+              </Box>
+            )}
 
-      {/* Academic Experience */}
-      {experiences.length > 0 && (
-        <div className="mb-8" data-cv-block="experience-title">
-          <h2 className="text-2xl font-bold text-blue-900 mb-4 pb-2 border-b-2 border-blue-200">
-            ACADEMIC APPOINTMENTS
-          </h2>
-          
-          <div className="space-y-6">
-            {experiences.map((exp) => (
-              <div key={exp.id} className="bg-gray-50 p-6 rounded-lg border-l-4 border-green-500" data-cv-block={`experience-${exp.id}`}>
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800">{exp.position}</h3>
-                    <p className="text-lg font-semibold text-green-700">{exp.company}</p>
-                    <p className="text-base text-gray-600">{exp.location}</p>
-                  </div>
-                  <div className="bg-green-600 text-white px-3 py-1 rounded text-sm font-medium">
-                    {exp.startDate} - {exp.current ? "Present" : exp.endDate}
-                  </div>
-                </div>
-                
-                {exp.description && (
-                  <div className="mt-4 text-gray-700 leading-relaxed">
-                    <p>{exp.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+            <Box flex={1}>
+              <Stack gap={2}>
+                <Text size={11} color="#111827">CONTACT</Text>
+                <Stack gap={1}>
+                  {personal.phone && (
+                    <Text name="phone" size={9} color="#374151">
+                      {personal.phone}
+                    </Text>
+                  )}
+                  {personal.email && (
+                    <Text name="email" size={9} color="#374151">
+                      {personal.email}
+                    </Text>
+                  )}
+                  {personal.linkedin && (
+                    <Text name="linkedin" size={9} color="#374151">
+                      {personal.linkedin}
+                    </Text>
+                  )}
+                  {contactLine1 && (
+                    <Text name="contactLine1" size={9} color="#374151">
+                      {contactLine1}
+                    </Text>
+                  )}
+                </Stack>
+              </Stack>
+            </Box>
+          </Row>
 
-      <div className="grid lg:grid-cols-2 gap-8" data-cv-block="lower-grid">
-        {/* Publications */}
-        <div className="lg:col-span-2 mb-8">
-          <h2 className="text-2xl font-bold text-blue-900 mb-4 pb-2 border-b-2 border-blue-200">
-            SELECTED PUBLICATIONS
-          </h2>
-          <div className="space-y-4 bg-gray-50 p-6 rounded-lg">
-            <div className="text-gray-600 italic">
-              <p>• Author, A., Author, B.  (2024). "Research Title." Journal Name, 42(3), 123-145.</p>
-              <p>• Author, A.  (2023). "Conference Paper Title." Proceedings of Academic Conference, 15-28.</p>
-              <p>• Author, A., et al. (2023). Book Title. Academic Publisher. </p>
-            </div>
-          </div>
-        </div>
+          <HR />
 
-        {/* Research Skills */}
-        {skills.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-blue-900 mb-4 pb-2 border-b border-blue-200">
-              RESEARCH SKILLS & METHODS
-            </h2>
-            <div className="space-y-2">
-              {skills.map((skill) => (
-                <div key={skill} className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                  <span className="text-gray-800 font-medium">• {skill}</span>
-                </div>
+          {/* FORMATION — titre fusionné avec 1er item, dates alignées à droite, pas de description */}
+          {education.length > 0 && (
+            <Stack gap={2}>
+              {education.map((edu, index) => (
+                <Stack gap={0.5}>
+                  {index === 0 && (
+                    <Text size={11} color="#111827" padding={{ bottom: 2 }}>FORMATION</Text>
+                  )}
+                  <Row justifyContent="space-between">
+                    <Text name={`education-${index}-degree`} size={9.5} color="#111827">
+                      {`${edu.institution} - ${edu.degree.toUpperCase()}`}
+                    </Text>
+                    <Text name={`education-${index}-dates`} size={9} color="#6b7280" align="right">
+                      {`${edu.startDate} - ${edu.endDate}`}
+                    </Text>
+                  </Row>
+                </Stack>
               ))}
-            </div>
-          </div>
-        )}
+            </Stack>
+          )}
 
-        {/* Languages */}
-        {languages.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-blue-900 mb-4 pb-2 border-b border-blue-200">
-              LANGUAGES
-            </h2>
-            <div className="space-y-3">
-              {languages.map((lang) => (
-                <div key={lang.id} className="flex justify-between items-center bg-gray-100 p-3 rounded">
-                  <span className="font-semibold text-gray-800">{lang.name}</span>
-                  <span className="bg-blue-600 text-white px-2 py-1 rounded text-sm">
-                    {lang.level}
-                  </span>
-                </div>
+          <HR />
+
+          {/* EXPÉRIENCE PROFESSIONNELLE — titre fusionné, description en liste à puces */}
+          {experiences.length > 0 && (
+            <Stack gap={4}>
+              {experiences.map((exp, index) => (
+                <Stack gap={1}>
+                  {index === 0 && (
+                    <Text size={11} color="#111827" padding={{ bottom: 2 }}>
+                      EXPÉRIENCES PROFESSIONNELLES
+                    </Text>
+                  )}
+                  <Row justifyContent="space-between">
+                    <Text name={`experience-${index}-position`} size={10} color="#111827">
+                      {`${exp.company} - ${exp.position.toUpperCase()}`}
+                    </Text>
+                    <Text name={`experience-${index}-dates`} size={9} color="#6b7280" align="right">
+                      {`${exp.startDate} - ${exp.current ? "Présent" : exp.endDate}`}
+                    </Text>
+                  </Row>
+                  <Text
+                    name={`experience-${index}-block`}
+                    size={9}
+                    lineHeight={1.5}
+                    color="#374151"
+                    overflow="expand"
+                  >
+                    {exp.description
+                      .split("\n")
+                      .filter(Boolean)
+                      .map((line) => `• ${line}`)
+                      .join("\n")}
+                  </Text>
+                </Stack>
               ))}
-            </div>
-          </div>
-        )}
-      </div>
+            </Stack>
+          )}
 
-      {/* Additional Academic Sections */}
-      <div className="grid lg:grid-cols-3 gap-6 mt-8">
-        <div>
-          <h2 className="text-lg font-bold text-blue-900 mb-3 pb-1 border-b border-blue-200">
-            GRANTS & AWARDS
-          </h2>
-          <p className="text-sm text-gray-500 italic">Research funding and recognitions</p>
-        </div>
-        
-        <div>
-          <h2 className="text-lg font-bold text-blue-900 mb-3 pb-1 border-b border-blue-200">
-            CONFERENCES
-          </h2>
-          <p className="text-sm text-gray-500 italic">Presentations and participation</p>
-        </div>
-        
-        <div>
-          <h2 className="text-lg font-bold text-blue-900 mb-3 pb-1 border-b border-blue-200">
-            MEMBERSHIPS
-          </h2>
-          <p className="text-sm text-gray-500 italic">Professional associations</p>
-        </div>
-      </div>
-    </div>
+          <HR />
+
+          {/* Compétences + Langues — sur deux colonnes */}
+          <Row gap={10}>
+            {skills.length > 0 && (
+              <Box flex={1.4}>
+                <MultiVariableText
+                  name="skillsText"
+                  size={9}
+                  lineHeight={1.6}
+                  overflow="expand"
+                  text={"COMPÉTENCES & LANGUES\n\n" + skills.map((_, i) => `• {skill${i}}`).join("\n")}
+                  values={Object.fromEntries(skills.map((s, i) => [`skill${i}`, s]))}
+                />
+              </Box>
+            )}
+
+            {languages.length > 0 && (
+              <Box flex={1}>
+                <MultiVariableText
+                  name="languagesText"
+                  size={9}
+                  lineHeight={1.6}
+                  overflow="expand"
+                  text={"\n\n" + languages.map((_, i) => `• {lang${i}}`).join("\n")}
+                  values={Object.fromEntries(
+                    languages.map((l, i) => [`lang${i}`, `${l.name} (${l.level})`])
+                  )}
+                />
+              </Box>
+            )}
+          </Row>
+        </Stack>
+      </Page>
+    </Document>
   )
 }

@@ -3,6 +3,8 @@ export interface Template {
   name: string
   description: string
   tags: string[]
+  /** Whether this template has a pdfme/jsx implementation and can be previewed/exported. */
+  available?: boolean
 }
 
 export const TEMPLATES: Template[] = [
@@ -43,7 +45,7 @@ export const TEMPLATES: Template[] = [
     description:  "Mise en avant chronologique des expériences",
     tags:  ["Chronologique", "Visuel", "Clair"],
   },
-  
+
   // Templates régionaux
   {
     id: "canadian",
@@ -63,13 +65,14 @@ export const TEMPLATES: Template[] = [
     description: "Format américain concis, 1-2 pages maximum",
     tags: ["USA", "Concis", "Skills-focused"],
   },
-  
+
   // Templates spécialisés
   {
     id: "academic",
     name:  "CV Académique",
     description: "Pour chercheurs, professeurs et postes universitaires",
     tags: ["Recherche", "Université", "Publications"],
+    available: true,
   },
   {
     id: "developer",

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText } from "lucide-react"
+import { authService } from "@/lib/services/auth-service"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -20,29 +21,28 @@ export default function RegisterPage() {
     confirmPassword: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Les mots de passe ne correspondent pas")
+      setError("Les mots de passe ne correspondent pas")
       return
     }
 
     setIsLoading(true)
 
-    // TODO: Implement real registration
-    // For now, simulate registration and redirect to dashboard
-    setTimeout(() => {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-        }),
-      )
+    try {
+      await authService.signUp(formData.name, formData.email, formData.password)
       router.push("/dashboard")
-    }, 1000)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de créer le compte")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -103,6 +103,7 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full" disabled={isLoading}>

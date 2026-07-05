@@ -13,100 +13,32 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { MoreVertical, Download, Copy, Edit2, Trash2 } from "lucide-react"
-import type { ProfileData } from "./cv-preview"
+import { MoreVertical, Copy, Edit2, Trash2 } from "lucide-react"
+import { cvService } from "@/lib/services/cv-service"
 
 interface CVActionsProps {
   cvId: string
   cvName: string
-  templateId: string
-  profileData: ProfileData
   onUpdate: () => void
 }
 
-export function CVActions({ cvId, cvName, templateId, profileData, onUpdate }: CVActionsProps) {
+export function CVActions({ cvId, cvName, onUpdate }: CVActionsProps) {
   const { toast } = useToast()
   const [isRenameOpen, setIsRenameOpen] = useState(false)
   const [newName, setNewName] = useState(cvName)
-  const [isExporting, setIsExporting] = useState(false)
 
-  const handleExportPDF = async () => {
-    setIsExporting(true)
-    try {
-      // Call the Puppeteer PDF generation API
-      const response = await fetch('/api/export-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          templateId,
-          profileData,
-        }),
-      })
+  const handleDuplicate = async () => {
+    await cvService.duplicateCv(cvId)
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to generate PDF')
-      }
+    toast({
+      title: "CV dupliqué",
+      description: "Une copie du CV a été créée",
+    })
 
-      // Get the PDF blob from response
-      const blob = await response.blob()
-
-      // Create a download link and trigger download
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${profileData.personal.firstName}_${profileData.personal.lastName}_CV.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      toast({
-        title: "Export réussi",
-        description: "Votre CV a été exporté en PDF avec succès.",
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
-      console.error('[PDF Export Error]:', error)
-      
-      toast({
-        title: "Erreur d'export",
-        description: `Impossible d'exporter le PDF: ${errorMessage}`,
-        variant: "destructive",
-      })
-    } finally {
-      setIsExporting(false)
-    }
+    onUpdate()
   }
 
-  const handleDuplicate = () => {
-    const cvs = JSON.parse(localStorage.getItem("user_cvs") || "[]")
-    const originalCv = cvs.find((cv: any) => cv.id === cvId)
-
-    if (originalCv) {
-      const newCv = {
-        ...originalCv,
-        id: Date.now().toString(),
-        name: `${originalCv.name} (Copie)`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      cvs.push(newCv)
-      localStorage.setItem("user_cvs", JSON.stringify(cvs))
-
-      toast({
-        title: "CV dupliqué",
-        description: "Une copie du CV a été créée",
-      })
-
-      onUpdate()
-    }
-  }
-
-  const handleRename = () => {
+  const handleRename = async () => {
     if (!newName.trim()) {
       toast({
         title: "Erreur",
@@ -116,18 +48,7 @@ export function CVActions({ cvId, cvName, templateId, profileData, onUpdate }: C
       return
     }
 
-    const cvs = JSON.parse(localStorage.getItem("user_cvs") || "[]")
-    const updatedCvs = cvs.map((cv: any) =>
-      cv.id === cvId
-        ? {
-            ...cv,
-            name: newName,
-            updatedAt: new Date().toISOString(),
-          }
-        : cv,
-    )
-
-    localStorage.setItem("user_cvs", JSON.stringify(updatedCvs))
+    await cvService.renameCv(cvId, newName)
 
     toast({
       title: "CV renommé",
@@ -138,11 +59,9 @@ export function CVActions({ cvId, cvName, templateId, profileData, onUpdate }: C
     onUpdate()
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce CV ?")) {
-      const cvs = JSON.parse(localStorage.getItem("user_cvs") || "[]")
-      const updatedCvs = cvs.filter((cv: any) => cv.id !== cvId)
-      localStorage.setItem("user_cvs", JSON.stringify(updatedCvs))
+      await cvService.deleteCv(cvId)
 
       toast({
         title: "CV supprimé",
@@ -163,10 +82,6 @@ export function CVActions({ cvId, cvName, templateId, profileData, onUpdate }: C
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExportPDF} disabled={isExporting}>
-            <Download className="h-4 w-4 mr-2" />
-            {isExporting ? "Export en cours..." : "Exporter en PDF"}
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Dupliquer

@@ -1,150 +1,117 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Download, Sparkles } from "lucide-react"
-import { CVPreview } from "@/components/cv/cv-preview"
+import type { Template } from "@pdfme/common"
+import { renderToTemplate } from "@pdfme/jsx"
+import { Sparkles } from "lucide-react"
+import { FormAndViewer } from "@/components/formandviewer"
+import { AcademicTemplate } from "@/components/cv/templates/academic"
 import { ATSAnalysisDialog } from "@/components/cv/ats-analysis-dialog"
 import { CVActions } from "@/components/cv/cv-actions"
 import { TEMPLATES } from "@/lib/cv-templates"
 import type { ProfileData } from "@/components/cv/cv-preview"
-import { useToast } from "@/hooks/use-toast"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
+import { authService, type AuthUser } from "@/lib/services/auth-service"
+import { cvService, type Cv } from "@/lib/services/cv-service"
+import { useProfile } from "@/components/profile/profile-provider"
 
-interface CV {
-  id: string
-  name: string
-  templateId: string
-  createdAt: string
-  updatedAt: string
+const CV_TEMPLATE_COMPONENTS: Record<string, (props: { data: ProfileData }) => ReturnType<typeof AcademicTemplate>> = {
+  academic: AcademicTemplate,
 }
 
 export default function CVViewPage() {
   const router = useRouter()
   const params = useParams()
-  const { toast } = useToast()
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
-  const [cv, setCv] = useState<CV | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
-  const [profileData, setProfileData] = useState<ProfileData>({
-    personal: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      postalCode: "",
-      country: "",
-      linkedin: "",
-      website: "",
-      summary: "",
-    },
-    experiences: [],
-    education: [],
-    skills: [],
-    languages: [],
-  })
+  const { profile, isLoading: isProfileLoading, error: profileError } = useProfile()
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [cv, setCv] = useState<Cv | null>(null)
+  const [rendered, setRendered] = useState<{ template: Template; inputs: Record<string, string>[] } | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
 
-  const loadCV = () => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
+  const profileData: ProfileData | null = useMemo(
+    () =>
+      profile
+        ? {
+            personal: profile.personalInfo,
+            experiences: profile.experiences,
+            education: profile.education,
+            skills: profile.skills,
+            languages: profile.languages,
+          }
+        : null,
+    [profile],
+  )
+
+  const loadCV = async () => {
+    const currentUser = await authService.getCurrentUser()
+    if (!currentUser) {
       router.push("/login")
       return
     }
-    setUser(JSON.parse(userData))
+    setUser(currentUser)
 
-    const savedCvs = localStorage.getItem("user_cvs")
-    if (savedCvs) {
-      const cvs = JSON.parse(savedCvs)
-      const foundCv = cvs.find((c: CV) => c.id === params.id)
-      if (foundCv) {
-        setCv(foundCv)
-      } else {
-        router.push("/dashboard/cvs")
-      }
+    const foundCv = await cvService.getCv(params.id as string)
+    if (foundCv) {
+      setCv(foundCv)
+    } else {
+      router.push("/dashboard/cvs")
     }
-
-    // Load profile data
-    const personal = localStorage.getItem("profile_personal")
-    const experiences = localStorage.getItem("profile_experiences")
-    const education = localStorage.getItem("profile_education")
-    const skills = localStorage.getItem("profile_skills")
-    const languages = localStorage.getItem("profile_languages")
-
-    setProfileData({
-      personal: personal ? JSON.parse(personal) : profileData.personal,
-      experiences: experiences ? JSON.parse(experiences) : [],
-      education: education ? JSON.parse(education) : [],
-      skills: skills ? JSON.parse(skills) : [],
-      languages: languages ? JSON.parse(languages) : [],
-    })
   }
 
   useEffect(() => {
     loadCV()
   }, [router, params.id])
 
-  const handleQuickExport = async () => {
-    setIsExporting(true)
+  useEffect(() => {
+    if (!cv || !profileData) return
 
-    try {
-      const response = await fetch("/api/export-pdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          templateId: cv?.templateId,
-          profileData,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => null)
-        throw new Error(error?.error || "Impossible de générer le PDF")
-      }
-
-      const blob = await response.blob()
-      const filenameBase = [profileData.personal.firstName, profileData.personal.lastName].filter(Boolean).join("_")
-      const filename = filenameBase ? `${filenameBase}_CV.pdf` : `${cv?.name || "CV"}.pdf`
-
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      toast({
-        title: "Export réussi",
-        description: "Votre CV a été exporté en PDF avec succès.",
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur inconnue"
-      console.error("[PDF Export Error]:", error)
-
-      toast({
-        title: "Erreur d'export",
-        description: `Impossible d'exporter le PDF: ${errorMessage}`,
-        variant: "destructive",
-      })
-    } finally {
-      setIsExporting(false)
+    const TemplateComponent = CV_TEMPLATE_COMPONENTS[cv.templateId]
+    if (!TemplateComponent) {
+      setPreviewError("Ce template n'a pas encore été migré vers pdfme.")
+      return
     }
-  }
 
+    let cancelled = false
+    ;(async () => {
+      try {
+        const result = await renderToTemplate(TemplateComponent({ data: profileData }))
+        if (!cancelled) setRendered(result)
+      } catch (error) {
+        if (cancelled) return
+        console.error("[CVViewPage] Failed to render template:", error)
+        const message = error instanceof Error ? error.message : String(error)
+        setPreviewError(`Impossible de préparer l'aperçu : ${message}`)
+      }
+    })()
 
-
-
-
-
+    return () => {
+      cancelled = true
+    }
+  }, [cv, profileData])
 
   if (!user || !cv) {
     return null
+  }
+
+  if (profileError) {
+    return (
+      <div className="min-h-screen flex">
+        <DashboardSidebar />
+        <main className="flex-1 ml-64 p-8 text-destructive">
+          Impossible de charger votre profil : {profileError}
+        </main>
+      </div>
+    )
+  }
+
+  if (isProfileLoading || !profileData) {
+    return (
+      <div className="min-h-screen flex">
+        <DashboardSidebar />
+        <main className="flex-1 ml-64 p-8 text-muted-foreground">Chargement de votre profil...</main>
+      </div>
+    )
   }
 
   const template = TEMPLATES.find((t) => t.id === cv.templateId)
@@ -162,17 +129,6 @@ export default function CVViewPage() {
             </div>
             <div className="flex gap-2">
               <ATSAnalysisDialog cvData={profileData} />
-              <Button onClick={handleQuickExport} disabled={isExporting}>
-                <Download className="h-4 w-4 mr-2" />
-                {isExporting ? "Export..." : "Télécharger PDF"}
-              </Button>
-              <CVActions
-                cvId={cv.id}
-                cvName={cv.name}
-                templateId={cv.templateId}
-                profileData={profileData}
-                onUpdate={loadCV}
-              />
             </div>
           </div>
 
@@ -188,8 +144,22 @@ export default function CVViewPage() {
             </div>
           </div>
 
-          <div className="bg-muted/30 p-8 rounded-lg" id="cv-preview-export">
-            <CVPreview templateId={cv.templateId} profileData={profileData} />
+          <div className="bg-muted/30 rounded-lg overflow-hidden" id="cv-preview-export">
+            {previewError && (
+              <div className="p-8 text-center text-muted-foreground">{previewError}</div>
+            )}
+            {!previewError && !rendered && (
+              <div className="p-8 text-center text-muted-foreground">Chargement de l&apos;aperçu...</div>
+            )}
+            {!previewError && rendered && (
+              <FormAndViewer
+                template={rendered.template}
+                inputs={rendered.inputs}
+                filename={`${cv.name}.pdf`}
+                designerHref={`/dashboard/template-designer?cvId=${cv.id}`}
+                actions={<CVActions cvId={cv.id} cvName={cv.name} onUpdate={loadCV} />}
+              />
+            )}
           </div>
         </div>
       </main>

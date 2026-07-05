@@ -1,15 +1,5 @@
-import OpenAI from 'openai'
 import { NextRequest, NextResponse } from 'next/server'
-
-// Configuration OpenAI pour OpenRouter
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || "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",
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": process.env.OPENROUTER_REFERER_URL || "http://localhost:3000",
-    "X-Title": process.env.OPENROUTER_APP_NAME || "CV Analyzer",
-  },
-})
+import { chatComplete } from '@/lib/openrouter'
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,20 +75,11 @@ Provide your analysis in the following JSON format:
 
 Be specific, actionable, and focus on ATS optimization. Analyze keyword matching, skills alignment, experience relevance, and formatting considerations.`
 
-    const response = await openai.chat.completions.create({
-      model: "kwaipilot/kat-coder-pro:free",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
+    const analysisText = await chatComplete(prompt, {
       temperature: 0.3,
-      max_tokens: 2000,
-      response_format: { type: "json_object" } // Force JSON response
+      maxTokens: 2000,
+      jsonResponse: true,
     })
-
-    const analysisText = response.choices[0]?.message?.content || ""
 
     if (!analysisText) {
       throw new Error("No response received from AI")
@@ -138,10 +119,7 @@ Be specific, actionable, and focus on ATS optimization. Analyze keyword matching
       })
     }
 
-    return NextResponse.json({ 
-      analysis,
-      model: response.model 
-    })
+    return NextResponse.json({ analysis })
 
   } catch (error: any) {
     console.error("[CV Analysis] Error:", error)

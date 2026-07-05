@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,42 +9,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, Briefcase } from "lucide-react"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
+import type { SectionHandle } from "./section-handle"
+import type { Experience } from "@/lib/services/profile-service"
+import { useProfile } from "./profile-provider"
 
-interface Experience {
-  id: string
-  position: string
-  company: string
-  location: string
-  startDate: string
-  endDate: string
-  current: boolean
-  description: string
-}
-
-export function ExperienceSection() {
+export const ExperienceSection = forwardRef<SectionHandle>(function ExperienceSection(_props, ref) {
   const { toast } = useToast()
+  const { profile, error, saveExperiences: persistExperiences } = useProfile()
   const [experiences, setExperiences] = useState<Experience[]>([])
   const [isAdding, setIsAdding] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem("profile_experiences")
-    if (saved) {
-      setExperiences(JSON.parse(saved))
+    if (profile) {
+      setExperiences(profile.experiences)
     }
-  }, [])
+  }, [profile])
 
-  const saveExperiences = (newExperiences: Experience[]) => {
+  const saveExperiences = async (newExperiences: Experience[]) => {
     setExperiences(newExperiences)
-    localStorage.setItem("profile_experiences", JSON.stringify(newExperiences))
-    toast({
-      title: "Expériences sauvegardées",
-      description: "Vos expériences professionnelles ont été enregistrées.",
-    })
+    try {
+      await persistExperiences(newExperiences)
+      toast({
+        title: "Expériences sauvegardées",
+        description: "Vos expériences professionnelles ont été enregistrées.",
+      })
+    } catch (err) {
+      console.error("[ExperienceSection] Failed to save:", err)
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
+        variant: "destructive",
+      })
+    }
   }
 
   const addExperience = () => {
     const newExperience: Experience = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       position: "",
       company: "",
       location: "",
@@ -64,6 +65,14 @@ export function ExperienceSection() {
 
   const deleteExperience = (id: string) => {
     saveExperiences(experiences.filter((exp) => exp.id !== id))
+  }
+
+  useImperativeHandle(ref, () => ({
+    save: () => saveExperiences(experiences),
+  }))
+
+  if (error) {
+    return <p className="text-sm text-destructive">Impossible de charger les expériences : {error}</p>
   }
 
   return (
@@ -172,4 +181,4 @@ export function ExperienceSection() {
       </Button>
     </div>
   )
-}
+})

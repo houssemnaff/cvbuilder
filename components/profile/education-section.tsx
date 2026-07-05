@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,40 +9,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, GraduationCap } from "lucide-react"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
+import type { SectionHandle } from "./section-handle"
+import type { Education } from "@/lib/services/profile-service"
+import { useProfile } from "./profile-provider"
 
-interface Education {
-  id: string
-  degree: string
-  institution: string
-  location: string
-  startDate: string
-  endDate: string
-  description: string
-}
-
-export function EducationSection() {
+export const EducationSection = forwardRef<SectionHandle>(function EducationSection(_props, ref) {
   const { toast } = useToast()
+  const { profile, error, saveEducation: persistEducation } = useProfile()
   const [educations, setEducations] = useState<Education[]>([])
 
   useEffect(() => {
-    const saved = localStorage.getItem("profile_education")
-    if (saved) {
-      setEducations(JSON.parse(saved))
+    if (profile) {
+      setEducations(profile.education)
     }
-  }, [])
+  }, [profile])
 
-  const saveEducations = (newEducations: Education[]) => {
+  const saveEducations = async (newEducations: Education[]) => {
     setEducations(newEducations)
-    localStorage.setItem("profile_education", JSON.stringify(newEducations))
-    toast({
-      title: "Formation sauvegardée",
-      description: "Vos diplômes et formations ont été enregistrés.",
-    })
+    try {
+      await persistEducation(newEducations)
+      toast({
+        title: "Formation sauvegardée",
+        description: "Vos diplômes et formations ont été enregistrés.",
+      })
+    } catch (err) {
+      console.error("[EducationSection] Failed to save:", err)
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
+        variant: "destructive",
+      })
+    }
   }
 
   const addEducation = () => {
     const newEducation: Education = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       degree: "",
       institution: "",
       location: "",
@@ -60,6 +62,14 @@ export function EducationSection() {
 
   const deleteEducation = (id: string) => {
     saveEducations(educations.filter((edu) => edu.id !== id))
+  }
+
+  useImperativeHandle(ref, () => ({
+    save: () => saveEducations(educations),
+  }))
+
+  if (error) {
+    return <p className="text-sm text-destructive">Impossible de charger la formation : {error}</p>
   }
 
   return (
@@ -155,4 +165,4 @@ export function EducationSection() {
       </Button>
     </div>
   )
-}
+})

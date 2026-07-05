@@ -7,42 +7,28 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Plus, Eye, Trash2 } from "lucide-react"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
-
-interface CV {
-  id: string
-  name: string
-  templateId: string
-  createdAt: string
-  updatedAt: string
-}
+import { authService, type AuthUser } from "@/lib/services/auth-service"
+import { cvService, type Cv } from "@/lib/services/cv-service"
 
 export default function CVsPage() {
   const router = useRouter()
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null)
-  const [cvs, setCvs] = useState<CV[]>([])
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [cvs, setCvs] = useState<Cv[]>([])
 
   useEffect(() => {
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-    } else {
-      setUser(JSON.parse(userData))
-      const savedCvs = localStorage.getItem("user_cvs")
-      if (savedCvs) {
-        setCvs(JSON.parse(savedCvs))
+    authService.getCurrentUser().then(async (currentUser) => {
+      if (!currentUser) {
+        router.push("/login")
+        return
       }
-    }
+      setUser(currentUser)
+      setCvs(await cvService.listCvs())
+    })
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/")
-  }
-
-  const deleteCv = (id: string) => {
-    const updated = cvs.filter((cv) => cv.id !== id)
-    setCvs(updated)
-    localStorage.setItem("user_cvs", JSON.stringify(updated))
+  const deleteCv = async (id: string) => {
+    await cvService.deleteCv(id)
+    setCvs((prev) => prev.filter((cv) => cv.id !== id))
   }
 
   if (!user) {
