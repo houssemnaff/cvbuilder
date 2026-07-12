@@ -17,6 +17,25 @@ const nextConfig: NextConfig = {
     }
   },
 
+  // Same clawpdf issue as above, but for the "next build --webpack" path
+  // (the actual production build command): its Node-only `await import(...)`
+  // branches (module, node:fs/promises, node:url, node:zlib) are guarded by a
+  // runtime `typeof process` check and never execute in the browser, but
+  // webpack still statically resolves dynamic imports, so it fails without
+  // these stubbed out for the client bundle.
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        module: path.join(__dirname, 'lib/stubs/empty-module.js'),
+        'node:fs/promises': false,
+        'node:url': false,
+        'node:zlib': false,
+      }
+    }
+    return config
+  },
+
   // Autoriser les appels API externes
   /*async headers() {
     return [

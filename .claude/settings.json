@@ -8,7 +8,10 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(timeout 60 npx tsx ./_tmp_test_pdf.mjs)",
       "Bash(grep -n \"\\\\\"style\\\\\"\\\\|\\\\\"sideEffects\\\\\"\\\\|\\\\\\\\.css\" node_modules/@pdfme/ui/package.json)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(timeout 280 npx next build)",
+      "Bash(timeout 280 npx next build --webpack)",
+      "PowerShell(cd \"d:\\\\wireframe2code\\\\cvbuilder\\\\cvbuilder\"; Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; $env:NODE_OPTIONS=\"--max-old-space-size=6144\"; npx next build --webpack 2>&1 | Select-Object -Last 200)"
     ]
   }
 }
