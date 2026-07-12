@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback, type ReactNode } from "react"
 import Link from "next/link"
 import { Pencil, Download } from "lucide-react"
 import type { Template } from "@pdfme/common"
-import { Form, Viewer } from "@pdfme/ui"
+import type { Form, Viewer } from "@pdfme/ui"
 import { generatePDF, getFontsData } from "@/app/helper"
 import { getPlugins } from "@/app/plugins"
 import { getErrorMessage } from "@/lib/errors"
@@ -39,19 +39,26 @@ export function FormAndViewer({ template, inputs, filename, designerHref, action
   useEffect(() => {
     if (!uiRef.current) return
 
+    let cancelled = false
+
     destroyCurrentUi()
 
-    ui.current = new (mode === "form" ? Form : Viewer)({
-      domContainer: uiRef.current,
-      template,
-      inputs: currentInputsRef.current,
-      options: {
-        font: getFontsData(),
-      },
-      plugins: getPlugins(),
+    import("@pdfme/ui").then(({ Form, Viewer }) => {
+      if (cancelled || !uiRef.current) return
+
+      ui.current = new (mode === "form" ? Form : Viewer)({
+        domContainer: uiRef.current,
+        template,
+        inputs: currentInputsRef.current,
+        options: {
+          font: getFontsData(),
+        },
+        plugins: getPlugins(),
+      })
     })
 
     return () => {
+      cancelled = true
       destroyCurrentUi()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

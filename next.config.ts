@@ -18,20 +18,28 @@ const nextConfig: NextConfig = {
   },
 
   // Same clawpdf issue as above, but for the "next build --webpack" path
-  // (the actual production build command): its Node-only `await import(...)`
-  // branches (module, node:fs/promises, node:url, node:zlib) are guarded by a
-  // runtime `typeof process` check and never execute in the browser, but
-  // webpack still statically resolves dynamic imports, so it fails without
-  // these stubbed out for the client bundle.
-  webpack: (config, { isServer }) => {
+  // (the actual production build command). clawpdf's own internal Node-only
+  // `await import(...)` branches (module, node:fs/promises, node:url, node:zlib)
+  // are guarded by a runtime `typeof process` check and never execute in the
+  // browser, but webpack still statically resolves every import() call to build
+  // the chunk graph — including inside async chunks — so these need to stay
+  // stubbed for the client bundle even when @pdfme/ui itself is imported
+  // dynamically on our side.
+  webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,
         module: path.join(__dirname, 'lib/stubs/empty-module.js'),
-        'node:fs/promises': false,
-        'node:url': false,
-        'node:zlib': false,
       }
+      // resolve.alias doesn't intercept "node:"-scheme specifiers used in
+      // dynamic `import()` calls (they hit webpack's scheme resolver before
+      // alias substitution runs), so IgnorePlugin is needed to actually
+      // drop these from the client bundle.
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^node:(fs\/promises|url|zlib)$/,
+        }),
+      )
     }
     return config
   },

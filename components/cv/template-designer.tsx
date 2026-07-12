@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import type { Template } from "@pdfme/common"
-import { Designer } from "@pdfme/ui"
+import type { Designer } from "@pdfme/ui"
 import { getPlugins } from "@/app/plugins"
 
 interface TemplateDesignerProps {
@@ -36,15 +36,22 @@ export function TemplateDesigner({ initialTemplate, onSave }: TemplateDesignerPr
   useEffect(() => {
     if (!containerRef.current) return
 
-    const designer = new Designer({
-      domContainer: containerRef.current,
-      template: initialTemplate,
-      plugins: getPlugins(),
+    let cancelled = false
+
+    import("@pdfme/ui").then(({ Designer }) => {
+      if (cancelled || !containerRef.current) return
+
+      const designer = new Designer({
+        domContainer: containerRef.current,
+        template: initialTemplate,
+        plugins: getPlugins(),
+      })
+      designerRef.current = designer
     })
-    designerRef.current = designer
 
     return () => {
-      designer.destroy()
+      cancelled = true
+      designerRef.current?.destroy()
       designerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,5 +1,5 @@
 import { Font, getDefaultFont } from "@pdfme/common"
-import { Form, Viewer, Designer } from "@pdfme/ui"
+import type { Form, Viewer, Designer } from "@pdfme/ui"
 import { generate } from "@pdfme/generator"
 import { getPlugins } from "./plugins"
 

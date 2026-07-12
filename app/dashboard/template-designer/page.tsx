@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import type { Template } from "@pdfme/common"
 import { renderToTemplate } from "@pdfme/jsx"
@@ -25,6 +25,14 @@ function applyInputsToTemplate(template: Template, inputs: Record<string, string
 }
 
 export default function TemplateDesignerPage() {
+  return (
+    <Suspense fallback={null}>
+      <TemplateDesignerPageContent />
+    </Suspense>
+  )
+}
+
+function TemplateDesignerPageContent() {
   const searchParams = useSearchParams()
   const cvId = searchParams.get("cvId")
   const { profile, isLoading: isProfileLoading, error: profileErrorMessage } = useProfile()
