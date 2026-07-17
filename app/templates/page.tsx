@@ -2,12 +2,8 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, ArrowLeft } from "lucide-react"
-import { TEMPLATES } from "@/lib/cv-templates"
-import { TemplateGalleryPreview } from "@/components/cv/template-gallery-preview"
-
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((template) => template.available)
+import { TemplateGrid } from "@/components/cv/template-grid"
 
 export default function TemplatesPage() {
   return (
@@ -19,55 +15,37 @@ export default function TemplatesPage() {
             <FileText className="h-6 w-6 text-primary" />
             <span className="font-semibold text-lg">CVBuilder AI</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <Link href="/">
-              <Button variant="ghost">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
+              <Button variant="ghost" size="sm" className="sm:h-9 sm:px-4">
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Retour</span>
               </Button>
             </Link>
             <Link href="/login">
-              <Button variant="ghost">Connexion</Button>
+              <Button variant="ghost" size="sm" className="sm:h-9 sm:px-4">
+                Connexion
+              </Button>
             </Link>
             <Link href="/register">
-              <Button>Inscription</Button>
+              <Button size="sm" className="sm:h-9 sm:px-4">
+                Inscription
+              </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-16">
+      <main className="flex-1 container mx-auto px-4 py-10 md:py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Nos modèles de CV professionnels</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Nos modèles de CV professionnels</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Choisissez parmi une sélection de templates soigneusement conçus et optimisés pour les systèmes ATS
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {AVAILABLE_TEMPLATES.map((template) => (
-              <Card key={template.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle>{template.name}</CardTitle>
-                  <CardDescription>{template.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TemplateGalleryPreview template={template} />
-                  <div className="flex gap-2 flex-wrap mb-4">
-                    {template.tags.map((tag) => (
-                      <span key={tag} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <Link href="/register">
-                    <Button className="w-full">Utiliser ce modèle</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <TemplateGrid ctaHref="/register" />
 
           <div className="text-center mt-16">
             <h2 className="text-2xl font-bold mb-4">Prêt à créer votre CV professionnel ?</h2>

@@ -62,7 +62,7 @@ export default function DashboardPage() {
     <div className="min-h-screen flex">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Mon Profil</h1>
@@ -72,13 +72,14 @@ export default function DashboardPage() {
           </div>
 
           <Tabs defaultValue="personal" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full h-auto grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
               <TabsTrigger value="personal">Personnel</TabsTrigger>
               <TabsTrigger value="experience">Expériences</TabsTrigger>
               <TabsTrigger value="education">Formation</TabsTrigger>
               <TabsTrigger value="skills">Compétences</TabsTrigger>
+               <TabsTrigger value="projects">Projets</TabsTrigger>
               <TabsTrigger value="languages">Langues</TabsTrigger>
-              <TabsTrigger value="projects">Projets</TabsTrigger>
+             
             </TabsList>
 
             <TabsContent value="personal">
@@ -185,6 +186,33 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
 
+
+              <TabsContent value="projects">
+              <Card>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                  <div>
+                    <CardTitle>Projets</CardTitle>
+                    <CardDescription>Vos projets personnels ou professionnels</CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleSave("projects", projectsRef)}
+                    title="Sauvegarder"
+                  >
+                    {savedSection === "projects" ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <ProjectSelection ref={projectsRef} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="languages">
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0">
@@ -211,31 +239,7 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="projects">
-              <Card>
-                <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                  <div>
-                    <CardTitle>Projets</CardTitle>
-                    <CardDescription>Vos projets personnels ou professionnels</CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleSave("projects", projectsRef)}
-                    title="Sauvegarder"
-                  >
-                    {savedSection === "projects" ? (
-                      <Check className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <ProjectSelection ref={projectsRef} />
-                </CardContent>
-              </Card>
-            </TabsContent>
+          
           </Tabs>
 
           <div className="mt-8 flex justify-center">

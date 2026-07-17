@@ -1,6 +1,8 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useState, useEffect, type ChangeEvent } from "react"
+import { User } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -22,6 +24,7 @@ const EMPTY_PERSONAL_INFO: PersonalInfo = {
   linkedin: "",
   website: "",
   summary: "",
+  photo: "",
 }
 
 export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props, ref) {
@@ -54,12 +57,68 @@ export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props
     },
   }))
 
+  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new window.Image()
+      img.onload = () => {
+        // Redimensionne à 400px max pour garder un data URL léger en base
+        const MAX_SIZE = 400
+        const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height))
+        const canvas = document.createElement("canvas")
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        setFormData((prev) => ({ ...prev, photo: canvas.toDataURL("image/jpeg", 0.85) }))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ""
+  }
+
   if (error) {
     return <p className="text-sm text-destructive">Impossible de charger le profil : {error}</p>
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        {formData.photo ? (
+          <img
+            src={formData.photo}
+            alt="Photo de profil"
+            className="h-24 w-24 rounded-full object-cover border border-border shrink-0"
+          />
+        ) : (
+          <div className="h-24 w-24 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
+            <User className="h-10 w-10 text-muted-foreground" />
+          </div>
+        )}
+        <div className="space-y-2 flex-1">
+          <Label htmlFor="photo">Photo de profil</Label>
+          <Input id="photo" type="file" accept="image/*" onChange={handlePhotoUpload} />
+          <p className="text-sm text-muted-foreground">
+            Utilisée par les templates avec photo (ex. Style Européen). Formats image classiques acceptés.
+          </p>
+          {formData.photo && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFormData({ ...formData, photo: "" })}
+            >
+              Supprimer la photo
+            </Button>
+          )}
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">Prénom</Label>

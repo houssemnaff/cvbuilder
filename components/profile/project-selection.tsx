@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, FolderKanban } from "lucide-react"
+import { AITextImprover } from "@/components/ui/ai-text-improver"
 import type { SectionHandle } from "./section-handle"
 import type { Project } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
@@ -121,7 +122,14 @@ export const ProjectSelection = forwardRef<SectionHandle>(function ProjectSelect
             </div>
 
             <div className="space-y-2">
-              <Label>Description</Label>
+              <div className="flex items-center justify-between">
+                <Label>Description</Label>
+                <AITextImprover
+                  originalText={project.description}
+                  context="project"
+                  onApply={(improvedText) => updateProject(project.id, "description", improvedText)}
+                />
+              </div>
               <Textarea
                 value={project.description}
                 onChange={(e) => updateProject(project.id, "description", e.target.value)}

@@ -92,6 +92,7 @@ export function FormAndViewer({ template, inputs, filename, designerHref, action
   const navItems: NavItem[] = [
     ...(designerHref
       ? [
+        /*    design i will fix it later
           {
             label: "Design",
             content: (
@@ -103,7 +104,7 @@ export function FormAndViewer({ template, inputs, filename, designerHref, action
                 Designer
               </Link>
             ),
-          },
+          }, */
         ]
       : []),
     {

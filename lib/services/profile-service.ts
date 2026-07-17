@@ -12,6 +12,8 @@ export interface PersonalInfo {
   linkedin: string
   website: string
   summary: string
+  /** Photo de profil encodée en data URL (utilisée par les templates avec photo). */
+  photo: string
 }
 
 export interface Experience {
@@ -70,6 +72,7 @@ const EMPTY_PERSONAL_INFO: PersonalInfo = {
   linkedin: "",
   website: "",
   summary: "",
+  photo: "",
 }
 
 async function requireUserId() {

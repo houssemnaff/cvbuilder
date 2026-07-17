@@ -7,6 +7,9 @@ import { renderToTemplate } from "@pdfme/jsx"
 import { Sparkles } from "lucide-react"
 import { FormAndViewer } from "@/components/formandviewer"
 import { AcademicTemplate } from "@/components/cv/templates/academic"
+import { ModernMinimalTemplate } from "@/components/cv/templates/modern"
+import { EuropeanTemplate } from "@/components/cv/templates/european"
+import { TwoColumnTemplate } from "@/components/cv/templates/two-column"
 import { ATSAnalysisDialog } from "@/components/cv/ats-analysis-dialog"
 import { CVActions } from "@/components/cv/cv-actions"
 import { TEMPLATES } from "@/lib/cv-templates"
@@ -18,6 +21,9 @@ import { useProfile } from "@/components/profile/profile-provider"
 
 const CV_TEMPLATE_COMPONENTS: Record<string, (props: { data: ProfileData }) => ReturnType<typeof AcademicTemplate>> = {
   academic: AcademicTemplate,
+  "modern-minimal": ModernMinimalTemplate,
+  european: EuropeanTemplate,
+  "two-column": TwoColumnTemplate,
 }
 
 export default function CVViewPage() {
@@ -98,7 +104,7 @@ export default function CVViewPage() {
     return (
       <div className="min-h-screen flex">
         <DashboardSidebar />
-        <main className="flex-1 ml-64 p-8 text-destructive">
+        <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8 text-destructive">
           Impossible de charger votre profil : {profileError}
         </main>
       </div>
@@ -109,7 +115,7 @@ export default function CVViewPage() {
     return (
       <div className="min-h-screen flex">
         <DashboardSidebar />
-        <main className="flex-1 ml-64 p-8 text-muted-foreground">Chargement de votre profil...</main>
+        <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8 text-muted-foreground">Chargement de votre profil...</main>
       </div>
     )
   }
@@ -120,9 +126,9 @@ export default function CVViewPage() {
     <div className="min-h-screen flex">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold">{cv.name}</h1>
               <p className="text-sm text-muted-foreground">Modèle : {template?.name}</p>

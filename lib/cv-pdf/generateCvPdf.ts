@@ -3,9 +3,15 @@ import { generate } from "@pdfme/generator"
 import { getPlugins } from "@/app/plugins"
 import type { ProfileData } from "@/components/cv/cv-preview"
 import { AcademicTemplate } from "@/components/cv/templates/academic"
+import { ModernMinimalTemplate } from "@/components/cv/templates/modern"
+import { EuropeanTemplate } from "@/components/cv/templates/european"
+import { TwoColumnTemplate } from "@/components/cv/templates/two-column"
 
 const CV_TEMPLATE_MAP: Record<string, (props: { data: ProfileData }) => ReturnType<typeof AcademicTemplate>> = {
   academic: AcademicTemplate,
+  "modern-minimal": ModernMinimalTemplate,
+  european: EuropeanTemplate,
+  "two-column": TwoColumnTemplate,
 }
 
 export async function generateCvPdf(templateId: string, profileData: ProfileData): Promise<Buffer> {

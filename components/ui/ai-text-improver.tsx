@@ -84,12 +84,13 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
         disabled={!originalText}
         className="bg-transparent"
       >
-        <Sparkles className="h-4 w-4 mr-2" />
-        Améliorer avec l'IA
+        <Sparkles className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Améliorer avec l'IA</span>
+        <span className="sm:hidden ml-1">IA</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Assistant IA d'écriture</DialogTitle>
             <DialogDescription>
@@ -104,9 +105,9 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
             </div>
 
             {isLoading && (
-              <div className="flex items-center justify-center py-12 bg-muted rounded-md">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <span className="ml-2 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 py-12 px-4 bg-muted rounded-md text-center">
+                <Loader2 className="h-6 w-6 animate-spin text-primary shrink-0" />
+                <span className="text-sm text-muted-foreground">
                   L'IA génère 3 suggestions professionnelles...
                 </span>
               </div>
@@ -117,8 +118,8 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
                 <label className="text-sm font-medium mb-3 block">
                   Choisissez une suggestion ({suggestions.length} options disponibles)
                 </label>
-                <ScrollArea className="h-96 border rounded-md">
-                  <div className="p-4 space-y-3">
+                <ScrollArea className="h-60 sm:h-96 border rounded-md">
+                  <div className="p-3 sm:p-4 space-y-3">
                     {suggestions.map((suggestion, index) => (
                       <button
                         key={index}
@@ -151,8 +152,13 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
               </div>
             )}
 
-            <div className="sticky bottom-0 flex justify-end gap-2 bg-background pt-2">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="bg-transparent">
+            <div className="sticky bottom-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 bg-background pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                className="bg-transparent w-full sm:w-auto"
+              >
                 Annuler
               </Button>
               <Button
@@ -160,12 +166,17 @@ export function AITextImprover({ originalText, context, language = "fr", onApply
                 variant="outline"
                 onClick={handleGenerateSuggestions}
                 disabled={isLoading}
-                className="bg-transparent"
+                className="bg-transparent w-full sm:w-auto"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 Régénérer 3 nouvelles
               </Button>
-              <Button type="button" onClick={handleApply} disabled={selectedIndex === null || isLoading}>
+              <Button
+                type="button"
+                onClick={handleApply}
+                disabled={selectedIndex === null || isLoading}
+                className="w-full sm:w-auto"
+              >
                 Appliquer la sélection
               </Button>
             </div>

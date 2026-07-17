@@ -11,6 +11,8 @@ export interface ProfileData {
     linkedin: string
     website: string
     summary: string
+    /** Photo de profil en data URL, optionnelle (seuls certains templates l'affichent). */
+    photo?: string
   }
   experiences: Array<{
     id: string

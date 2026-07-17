@@ -44,7 +44,7 @@ export default function NewCVPage() {
     return (
       <div className="min-h-screen flex">
         <DashboardSidebar />
-        <main className="flex-1 ml-64 flex items-center justify-center">
+        <main className="flex-1 md:ml-64 pt-14 md:pt-0 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
       </div>
@@ -59,7 +59,7 @@ export default function NewCVPage() {
     <div className="min-h-screen flex bg-background">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Choisissez un modèle</h1>
@@ -68,7 +68,7 @@ export default function NewCVPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {AVAILABLE_TEMPLATES.map((template) => (
               <Card
                 key={template.id}

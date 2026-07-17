@@ -12,12 +12,17 @@ export default function HomePage() {
             <FileText className="h-6 w-6 text-primary" />
             <span className="font-semibold text-lg">CVBuilder AI</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             <Link href="/login">
-              <Button variant="ghost">Connexion</Button>
+              <Button variant="ghost" size="sm" className="sm:h-9 sm:px-4">
+                Connexion
+              </Button>
             </Link>
             <Link href="/register">
-              <Button>Inscription gratuite</Button>
+              <Button size="sm" className="sm:h-9 sm:px-4">
+                <span className="sm:hidden">Inscription</span>
+                <span className="hidden sm:inline">Inscription gratuite</span>
+              </Button>
             </Link>
           </div>
         </div>
@@ -25,9 +30,9 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="container mx-auto px-4 py-16 md:py-24">
+        <section className="container mx-auto px-4 py-12 sm:py-16 md:py-24">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-balance">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-balance">
               Créez des CV professionnels optimisés par l'IA
             </h1>
             <p className="text-lg text-muted-foreground mb-8 text-pretty">
@@ -52,8 +57,8 @@ export default function HomePage() {
         {/* Features Section */}
         <section className="bg-muted/50 py-16">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Pourquoi choisir CVBuilder AI ?</h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12">Pourquoi choisir CVBuilder AI ?</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
               <div className="bg-card p-6 rounded-lg border border-border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Sparkles className="h-6 w-6 text-primary" />
@@ -92,7 +97,7 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <section className="container mx-auto px-4 py-16 text-center">
-          <h2 className="text-3xl font-bold mb-4">Prêt à créer votre CV professionnel ?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Prêt à créer votre CV professionnel ?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Rejoignez des milliers d'utilisateurs qui ont déjà boosté leur recherche d'emploi avec CVBuilder AI.
           </p>

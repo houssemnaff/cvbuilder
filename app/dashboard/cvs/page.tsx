@@ -39,9 +39,9 @@ export default function CVsPage() {
     <div className="min-h-screen flex">
       <DashboardSidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 pt-20 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold mb-2">Mes CV</h1>
               <p className="text-muted-foreground">Gérez et créez vos CV professionnels</p>
@@ -71,7 +71,7 @@ export default function CVsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {cvs.map((cv) => (
                 <Card key={cv.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>

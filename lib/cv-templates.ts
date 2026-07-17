@@ -14,6 +14,7 @@ export const TEMPLATES: Template[] = [
     name: "Moderne Minimaliste",
     description: "Design épuré et moderne, idéal pour les profils tech",
     tags: ["Moderne", "Tech", "Minimaliste"],
+    available: true,
   },
   {
     id: "professional",
@@ -38,6 +39,7 @@ export const TEMPLATES: Template[] = [
     name: "Deux Colonnes",
     description: "Organisation claire en deux colonnes",
     tags: ["Structuré", "Lisible", "Moderne"],
+    available: true,
   },
   {
     id: "timeline",
@@ -58,6 +60,7 @@ export const TEMPLATES: Template[] = [
     name: "Style Européen",
     description: "Format européen avec photo et informations détaillées",
     tags: ["Europe", "Photo", "Détaillé"],
+    available: true,
   },
   {
     id: "american",

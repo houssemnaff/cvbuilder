@@ -5,7 +5,7 @@ let client: OpenRouter | null = null
 function getClient(): OpenRouter {
   if (client) return client
 
-  const apiKey = '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'
+  const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY environment variable is not set")
   }
@@ -34,7 +34,9 @@ export async function chatComplete(prompt: string, options: ChatCompletionOption
       model: options.model ?? DEFAULT_OPENROUTER_MODEL,
       messages: [{ role: "user", content: prompt }],
       temperature: options.temperature,
-      maxTokens: options.maxTokens,
+      // Plafond par défaut : sans lui, OpenRouter réserve le max du modèle (65k tokens)
+      // et rejette la requête si le solde de crédits ne peut pas le couvrir.
+      maxTokens: options.maxTokens ?? 4000,
       responseFormat: options.jsonResponse ? { type: "json_object" } : undefined,
     },
   })
