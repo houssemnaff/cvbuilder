@@ -1,52 +1,31 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, FolderKanban } from "lucide-react"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import type { Project } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
 
-export const ProjectSelection = forwardRef<SectionHandle>(function ProjectSelection(_props, ref) {
-  const { toast } = useToast()
+export function ProjectSelection() {
   const { profile, error, saveProjects: persistProjects } = useProfile()
   const [projects, setProjects] = useState<Project[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setProjects(profile.projects)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  const saveProjects = async (newProjects: Project[], silent = false) => {
-    setProjects(newProjects)
-    try {
-      await persistProjects(newProjects)
-      if (!silent) {
-        toast({
-          title: "Projets sauvegardés",
-          description: "Vos projets ont été enregistrés.",
-        })
-      }
-    } catch (err) {
-      console.error("[ProjectSelection] Failed to save:", err)
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  useImperativeHandle(ref, () => ({
-    save: () => saveProjects(projects),
-  }))
+  const autoSaveStatus = useAutoSave(projects, persistProjects, isHydrated)
 
   const addProject = () => {
     const newProject: Project = {
@@ -56,19 +35,15 @@ export const ProjectSelection = forwardRef<SectionHandle>(function ProjectSelect
       technologies: "",
       description: "",
     }
-    saveProjects([...projects, newProject], true)
+    setProjects([...projects, newProject])
   }
 
   const updateProject = (id: string, field: keyof Project, value: string) => {
-    const updated = projects.map((proj) => (proj.id === id ? { ...proj, [field]: value } : proj))
-    saveProjects(updated, true)
+    setProjects(projects.map((proj) => (proj.id === id ? { ...proj, [field]: value } : proj)))
   }
 
   const deleteProject = (id: string) => {
-    saveProjects(
-      projects.filter((proj) => proj.id !== id),
-      true,
-    )
+    setProjects(projects.filter((proj) => proj.id !== id))
   }
 
   if (error) {
@@ -77,6 +52,10 @@ export const ProjectSelection = forwardRef<SectionHandle>(function ProjectSelect
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
       {projects.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <FolderKanban className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -147,4 +126,4 @@ export const ProjectSelection = forwardRef<SectionHandle>(function ProjectSelect
       </Button>
     </div>
   )
-})
+}

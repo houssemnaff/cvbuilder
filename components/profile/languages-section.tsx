@@ -1,14 +1,14 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, Languages } from "lucide-react"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import type { Language } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
 
@@ -20,34 +20,19 @@ const LEVELS = [
   { value: "native", label: "Langue maternelle" },
 ]
 
-export const LanguagesSection = forwardRef<SectionHandle>(function LanguagesSection(_props, ref) {
-  const { toast } = useToast()
+export function LanguagesSection() {
   const { profile, error, saveLanguages: persistLanguages } = useProfile()
   const [languages, setLanguages] = useState<Language[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setLanguages(profile.languages)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  const saveLanguages = async (newLanguages: Language[]) => {
-    setLanguages(newLanguages)
-    try {
-      await persistLanguages(newLanguages)
-      toast({
-        title: "Langues sauvegardées",
-        description: "Vos langues ont été enregistrées.",
-      })
-    } catch (err) {
-      console.error("[LanguagesSection] Failed to save:", err)
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
-        variant: "destructive",
-      })
-    }
-  }
+  const autoSaveStatus = useAutoSave(languages, persistLanguages, isHydrated)
 
   const addLanguage = () => {
     const newLanguage: Language = {
@@ -55,21 +40,16 @@ export const LanguagesSection = forwardRef<SectionHandle>(function LanguagesSect
       name: "",
       level: "intermediate",
     }
-    saveLanguages([...languages, newLanguage])
+    setLanguages([...languages, newLanguage])
   }
 
   const updateLanguage = (id: string, field: keyof Language, value: string) => {
-    const updated = languages.map((lang) => (lang.id === id ? { ...lang, [field]: value } : lang))
-    saveLanguages(updated)
+    setLanguages(languages.map((lang) => (lang.id === id ? { ...lang, [field]: value } : lang)))
   }
 
   const deleteLanguage = (id: string) => {
-    saveLanguages(languages.filter((lang) => lang.id !== id))
+    setLanguages(languages.filter((lang) => lang.id !== id))
   }
-
-  useImperativeHandle(ref, () => ({
-    save: () => saveLanguages(languages),
-  }))
 
   if (error) {
     return <p className="text-sm text-destructive">Impossible de charger les langues : {error}</p>
@@ -77,6 +57,10 @@ export const LanguagesSection = forwardRef<SectionHandle>(function LanguagesSect
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
       {languages.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Languages className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -125,4 +109,4 @@ export const LanguagesSection = forwardRef<SectionHandle>(function LanguagesSect
       </Button>
     </div>
   )
-})
+}

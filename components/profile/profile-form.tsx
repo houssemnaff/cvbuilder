@@ -1,6 +1,6 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect, type ChangeEvent } from "react"
+import { useState, useEffect, type ChangeEvent } from "react"
 import { User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import type { PersonalInfo } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
+import { uploadImageToCloudinary } from "@/lib/cloudinary"
 
 const EMPTY_PERSONAL_INFO: PersonalInfo = {
   firstName: "",
@@ -27,45 +29,32 @@ const EMPTY_PERSONAL_INFO: PersonalInfo = {
   photo: "",
 }
 
-export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props, ref) {
+export function ProfileForm() {
   const { toast } = useToast()
   const { profile, error, savePersonalInfo } = useProfile()
   const [formData, setFormData] = useState<PersonalInfo>(EMPTY_PERSONAL_INFO)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setFormData(profile.personalInfo)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  useImperativeHandle(ref, () => ({
-    save: async () => {
-      try {
-        await savePersonalInfo(formData)
-        toast({
-          title: "Profil sauvegardé",
-          description: "Vos informations personnelles ont été enregistrées.",
-        })
-      } catch (err) {
-        console.error("[ProfileForm] Failed to save:", err)
-        toast({
-          title: "Erreur",
-          description: err instanceof Error ? err.message : "Impossible de sauvegarder le profil.",
-          variant: "destructive",
-        })
-      }
-    },
-  }))
+  const autoSaveStatus = useAutoSave(formData, savePersonalInfo, isHydrated)
 
   const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    e.target.value = ""
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = () => {
       const img = new window.Image()
       img.onload = () => {
-        // Redimensionne à 400px max pour garder un data URL léger en base
+        // Redimensionne à 400px max avant l'upload pour limiter le poids envoyé à Cloudinary
         const MAX_SIZE = 400
         const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height))
         const canvas = document.createElement("canvas")
@@ -74,12 +63,32 @@ export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props
         const ctx = canvas.getContext("2d")
         if (!ctx) return
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        setFormData((prev) => ({ ...prev, photo: canvas.toDataURL("image/jpeg", 0.85) }))
+
+        canvas.toBlob(
+          async (blob) => {
+            if (!blob) return
+            setIsUploadingPhoto(true)
+            try {
+              const url = await uploadImageToCloudinary(blob)
+              setFormData((prev) => ({ ...prev, photo: url }))
+            } catch (err) {
+              console.error("[ProfileForm] Failed to upload photo:", err)
+              toast({
+                title: "Erreur",
+                description: err instanceof Error ? err.message : "Impossible d'envoyer la photo.",
+                variant: "destructive",
+              })
+            } finally {
+              setIsUploadingPhoto(false)
+            }
+          },
+          "image/jpeg",
+          0.85,
+        )
       }
       img.src = reader.result as string
     }
     reader.readAsDataURL(file)
-    e.target.value = ""
   }
 
   if (error) {
@@ -88,6 +97,10 @@ export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         {formData.photo ? (
           <img
@@ -102,9 +115,17 @@ export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props
         )}
         <div className="space-y-2 flex-1">
           <Label htmlFor="photo">Photo de profil</Label>
-          <Input id="photo" type="file" accept="image/*" onChange={handlePhotoUpload} />
+          <Input
+            id="photo"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handlePhotoUpload}
+            disabled={isUploadingPhoto}
+          />
           <p className="text-sm text-muted-foreground">
-            Utilisée par les templates avec photo (ex. Style Européen). Formats image classiques acceptés.
+            {isUploadingPhoto
+              ? "Envoi de la photo en cours..."
+              : "Utilisée par les templates avec photo (ex. Style Européen). JPEG, PNG ou WEBP, 5 Mo max."}
           </p>
           {formData.photo && (
             <Button
@@ -247,4 +268,4 @@ export const ProfileForm = forwardRef<SectionHandle>(function ProfileForm(_props
       </div>
     </div>
   )
-})
+}

@@ -2,60 +2,41 @@
 
 import type React from "react"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
 import { Plus, X, Wrench } from "lucide-react"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import { useProfile } from "./profile-provider"
 
-export const SkillsSection = forwardRef<SectionHandle>(function SkillsSection(_props, ref) {
-  const { toast } = useToast()
+export function SkillsSection() {
   const { profile, error, saveSkills: persistSkills } = useProfile()
   const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setSkills(profile.skills)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  const saveSkills = async (newSkills: string[]) => {
-    setSkills(newSkills)
-    try {
-      await persistSkills(newSkills)
-      toast({
-        title: "Compétences sauvegardées",
-        description: "Vos compétences ont été enregistrées.",
-      })
-    } catch (err) {
-      console.error("[SkillsSection] Failed to save:", err)
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
-        variant: "destructive",
-      })
-    }
-  }
+  const autoSaveStatus = useAutoSave(skills, persistSkills, isHydrated)
 
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      saveSkills([...skills, newSkill.trim()])
+      setSkills([...skills, newSkill.trim()])
       setNewSkill("")
     }
   }
 
   const removeSkill = (skill: string) => {
-    saveSkills(skills.filter((s) => s !== skill))
+    setSkills(skills.filter((s) => s !== skill))
   }
-
-  useImperativeHandle(ref, () => ({
-    save: () => saveSkills(skills),
-  }))
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -70,6 +51,10 @@ export const SkillsSection = forwardRef<SectionHandle>(function SkillsSection(_p
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
       {skills.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Wrench className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -110,4 +95,4 @@ export const SkillsSection = forwardRef<SectionHandle>(function SkillsSection(_p
       </div>
     </div>
   )
-})
+}

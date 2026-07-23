@@ -1,46 +1,31 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, GraduationCap } from "lucide-react"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import type { Education } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
 
-export const EducationSection = forwardRef<SectionHandle>(function EducationSection(_props, ref) {
-  const { toast } = useToast()
+export function EducationSection() {
   const { profile, error, saveEducation: persistEducation } = useProfile()
   const [educations, setEducations] = useState<Education[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setEducations(profile.education)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  const saveEducations = async (newEducations: Education[]) => {
-    setEducations(newEducations)
-    try {
-      await persistEducation(newEducations)
-      toast({
-        title: "Formation sauvegardée",
-        description: "Vos diplômes et formations ont été enregistrés.",
-      })
-    } catch (err) {
-      console.error("[EducationSection] Failed to save:", err)
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
-        variant: "destructive",
-      })
-    }
-  }
+  const autoSaveStatus = useAutoSave(educations, persistEducation, isHydrated)
 
   const addEducation = () => {
     const newEducation: Education = {
@@ -52,21 +37,16 @@ export const EducationSection = forwardRef<SectionHandle>(function EducationSect
       endDate: "",
       description: "",
     }
-    saveEducations([...educations, newEducation])
+    setEducations([...educations, newEducation])
   }
 
   const updateEducation = (id: string, field: keyof Education, value: string) => {
-    const updated = educations.map((edu) => (edu.id === id ? { ...edu, [field]: value } : edu))
-    saveEducations(updated)
+    setEducations(educations.map((edu) => (edu.id === id ? { ...edu, [field]: value } : edu)))
   }
 
   const deleteEducation = (id: string) => {
-    saveEducations(educations.filter((edu) => edu.id !== id))
+    setEducations(educations.filter((edu) => edu.id !== id))
   }
-
-  useImperativeHandle(ref, () => ({
-    save: () => saveEducations(educations),
-  }))
 
   if (error) {
     return <p className="text-sm text-destructive">Impossible de charger la formation : {error}</p>
@@ -74,6 +54,10 @@ export const EducationSection = forwardRef<SectionHandle>(function EducationSect
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
       {educations.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -165,4 +149,4 @@ export const EducationSection = forwardRef<SectionHandle>(function EducationSect
       </Button>
     </div>
   )
-})
+}

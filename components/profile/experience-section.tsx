@@ -1,47 +1,31 @@
 "use client"
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
 import { Plus, Trash2, Briefcase } from "lucide-react"
 import { AITextImprover } from "@/components/ui/ai-text-improver"
-import type { SectionHandle } from "./section-handle"
+import { AutoSaveIndicator } from "./auto-save-indicator"
+import { useAutoSave } from "@/hooks/use-auto-save"
 import type { Experience } from "@/lib/services/profile-service"
 import { useProfile } from "./profile-provider"
 
-export const ExperienceSection = forwardRef<SectionHandle>(function ExperienceSection(_props, ref) {
-  const { toast } = useToast()
+export function ExperienceSection() {
   const { profile, error, saveExperiences: persistExperiences } = useProfile()
   const [experiences, setExperiences] = useState<Experience[]>([])
-  const [isAdding, setIsAdding] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (profile) {
       setExperiences(profile.experiences)
+      setIsHydrated(true)
     }
   }, [profile])
 
-  const saveExperiences = async (newExperiences: Experience[]) => {
-    setExperiences(newExperiences)
-    try {
-      await persistExperiences(newExperiences)
-      toast({
-        title: "Expériences sauvegardées",
-        description: "Vos expériences professionnelles ont été enregistrées.",
-      })
-    } catch (err) {
-      console.error("[ExperienceSection] Failed to save:", err)
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de sauvegarder.",
-        variant: "destructive",
-      })
-    }
-  }
+  const autoSaveStatus = useAutoSave(experiences, persistExperiences, isHydrated)
 
   const addExperience = () => {
     const newExperience: Experience = {
@@ -54,22 +38,16 @@ export const ExperienceSection = forwardRef<SectionHandle>(function ExperienceSe
       current: false,
       description: "",
     }
-    saveExperiences([...experiences, newExperience])
-    setIsAdding(false)
+    setExperiences([...experiences, newExperience])
   }
 
   const updateExperience = (id: string, field: keyof Experience, value: string | boolean) => {
-    const updated = experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
-    saveExperiences(updated)
+    setExperiences(experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp)))
   }
 
   const deleteExperience = (id: string) => {
-    saveExperiences(experiences.filter((exp) => exp.id !== id))
+    setExperiences(experiences.filter((exp) => exp.id !== id))
   }
-
-  useImperativeHandle(ref, () => ({
-    save: () => saveExperiences(experiences),
-  }))
 
   if (error) {
     return <p className="text-sm text-destructive">Impossible de charger les expériences : {error}</p>
@@ -77,7 +55,11 @@ export const ExperienceSection = forwardRef<SectionHandle>(function ExperienceSe
 
   return (
     <div className="space-y-4">
-      {experiences.length === 0 && !isAdding && (
+      <div className="flex justify-end">
+        <AutoSaveIndicator status={autoSaveStatus} />
+      </div>
+
+      {experiences.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>Aucune expérience ajoutée</p>
@@ -181,4 +163,4 @@ export const ExperienceSection = forwardRef<SectionHandle>(function ExperienceSe
       </Button>
     </div>
   )
-})
+}
