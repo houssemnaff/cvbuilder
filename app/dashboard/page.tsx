@@ -13,6 +13,7 @@ import { EducationSection } from "@/components/profile/education-section"
 import { SkillsSection } from "@/components/profile/skills-section"
 import { LanguagesSection } from "@/components/profile/languages-section"
 import { ProjectSelection } from "@/components/profile/project-selection"
+import { ImportCvDialog } from "@/components/profile/import-cv-dialog"
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import type { SectionHandle } from "@/components/profile/section-handle"
 import { authService, type AuthUser } from "@/lib/services/auth-service"
@@ -69,6 +70,20 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">
               Centralisez toutes vos informations ici. Elles seront utilisées pour générer tous vos CV.
             </p>
+          </div>
+
+          {/* Choix : import IA d'un ancien CV ou saisie manuelle dans les onglets */}
+          <div className="mb-8 rounded-lg border border-primary/20 bg-primary/5 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <h2 className="font-semibold mb-1">Gagnez du temps avec l'IA</h2>
+              <p className="text-sm text-muted-foreground">
+                Importez votre ancien CV (PDF) : l'IA extrait vos expériences, formations, compétences et projets pour
+                pré-remplir votre profil. Ou remplissez simplement les onglets ci-dessous manuellement.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <ImportCvDialog />
+            </div>
           </div>
 
           <Tabs defaultValue="personal" className="space-y-6">

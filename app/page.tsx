@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FileText, Sparkles, Target, Download } from "lucide-react"
+import { FileText, Sparkles, Target, Download, Upload } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -58,7 +58,18 @@ export default function HomePage() {
         <section className="bg-muted/50 py-16">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12">Pourquoi choisir CVBuilder AI ?</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+              <div className="bg-card p-6 rounded-lg border border-border">
+                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <Upload className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Import de CV en 2 minutes</h3>
+                <p className="text-muted-foreground text-sm">
+                  Envoyez votre ancien CV en PDF : l'IA extrait automatiquement vos expériences, formations et
+                  compétences pour remplir votre profil.
+                </p>
+              </div>
+
               <div className="bg-card p-6 rounded-lg border border-border">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <Sparkles className="h-6 w-6 text-primary" />
