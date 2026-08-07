@@ -53,4 +53,14 @@ export const SAMPLE_PROFILE_DATA: ProfileData = {
     { id: "lang1", name: "Français", level: "Natif" },
     { id: "lang2", name: "Anglais", level: "Courant" },
   ],
+  projects: [
+    {
+      id: "proj1",
+      name: "Plateforme e-commerce",
+      link: "github.com/jeandupont/shop",
+      technologies: "React, Next.js, PostgreSQL, Stripe",
+      description:
+        "Développement d'une marketplace avec paiement en ligne, tableau de bord vendeur et recherche full-text.",
+    },
+  ],
 }

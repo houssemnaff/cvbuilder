@@ -19,8 +19,8 @@ function getClient(): OpenRouter {
   return client
 }
 
-export const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"
-
+// lib/openrouter.ts
+export const DEFAULT_OPENROUTER_MODEL = "openrouter/free"
 interface ChatCompletionOptions {
   model?: string
   temperature?: number

@@ -44,6 +44,7 @@ export default function CVViewPage() {
             education: profile.education,
             skills: profile.skills,
             languages: profile.languages,
+            projects: profile.projects,
           }
         : null,
     [profile],

@@ -23,7 +23,7 @@ function SectionTitle({ title }: { title: string }) {
 }
 
 export function EuropeanTemplate({ data }: TemplateProps) {
-  const { personal, experiences, education, skills, languages } = data
+  const { personal, experiences, education, skills, languages, projects } = data
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const addressLine = [personal.address, personal.postalCode, personal.city, personal.country]
@@ -163,6 +163,49 @@ export function EuropeanTemplate({ data }: TemplateProps) {
             </Stack>
           )}
 
+          {/* Projets */}
+          {projects.length > 0 && (
+            <Stack gap={2}>
+              <SectionTitle title="PROJETS" />
+              <Stack gap={2.5}>
+                {projects.map((project, index) => (
+                  <Stack gap={0.5}>
+                    <Row justifyContent="space-between">
+                      <Text name={`project-${index}-name`} size={9.5} color={DARK}>
+                        {project.name}
+                      </Text>
+                      {project.link && (
+                        <Text name={`project-${index}-link`} size={8} color={NAVY} align="right">
+                          {project.link}
+                        </Text>
+                      )}
+                    </Row>
+                    {project.technologies && (
+                      <Text name={`project-${index}-technologies`} size={8} color={MUTED}>
+                        {project.technologies}
+                      </Text>
+                    )}
+                    {project.description && (
+                      <Text
+                        name={`project-${index}-block`}
+                        size={9}
+                        lineHeight={1.5}
+                        color={BODY}
+                        overflow="expand"
+                      >
+                        {project.description
+                          .split("\n")
+                          .filter(Boolean)
+                          .map((line) => `• ${line}`)
+                          .join("\n")}
+                      </Text>
+                    )}
+                  </Stack>
+                ))}
+              </Stack>
+            </Stack>
+          )}
+
           {/* Compétences + Langues côte à côte */}
           <Row gap={10}>
             {skills.length > 0 && (
@@ -191,4 +234,5 @@ export function EuropeanTemplate({ data }: TemplateProps) {
       </Page>
     </Document>
   )
+  
 }

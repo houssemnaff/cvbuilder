@@ -58,6 +58,7 @@ function TemplateDesignerPageContent() {
         education: profile!.education,
         skills: profile!.skills,
         languages: profile!.languages,
+        projects: profile!.projects,
       }
 
       cvService

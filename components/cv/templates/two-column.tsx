@@ -39,7 +39,7 @@ function SideTitle({ title }: { title: string }) {
 }
 
 export function TwoColumnTemplate({ data }: TemplateProps) {
-  const { personal, experiences, education, skills, languages } = data
+  const { personal, experiences, education, skills, languages, projects } = data
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const addressLine = [personal.address, personal.postalCode, personal.city, personal.country]
@@ -165,6 +165,46 @@ export function TwoColumnTemplate({ data }: TemplateProps) {
                             {`${edu.startDate} - ${edu.endDate}`}
                           </Text>
                         </Row>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Stack>
+              )}
+
+              {projects.length > 0 && (
+                <Stack gap={2}>
+                  <MainTitle title="PROJETS" />
+                  <Stack gap={2.5}>
+                    {projects.map((project, index) => (
+                      <Stack gap={1}>
+                        <Text name={`project-${index}-name`} size={9.5} color={DARK}>
+                          {project.name}
+                        </Text>
+                        {project.link && (
+                          <Text name={`project-${index}-link`} size={8} color={MUTED}>
+                            {project.link}
+                          </Text>
+                        )}
+                        {project.technologies && (
+                          <Text name={`project-${index}-technologies`} size={8} color={MUTED}>
+                            {project.technologies}
+                          </Text>
+                        )}
+                        {project.description && (
+                          <Text
+                            name={`project-${index}-block`}
+                            size={9}
+                            lineHeight={1.5}
+                            color={BODY}
+                            overflow="expand"
+                          >
+                            {project.description
+                              .split("\n")
+                              .filter(Boolean)
+                              .map((line) => `• ${line}`)
+                              .join("\n")}
+                          </Text>
+                        )}
                       </Stack>
                     ))}
                   </Stack>

@@ -1,6 +1,6 @@
 /** @jsxImportSource @pdfme/jsx */
 import type { ProfileData } from "../cv-preview"
-import { Document, Page, Stack, Row, Box, Text, Footer } from "@pdfme/jsx"
+import { Document, Page, Stack, Row, Box, Text, Image, Footer } from "@pdfme/jsx"
 
 interface TemplateProps {
   data: ProfileData
@@ -24,7 +24,7 @@ function SectionTitle({ title }: { title: string }) {
 }
 
 export function ModernMinimalTemplate({ data }: TemplateProps) {
-  const { personal, experiences, education, skills, languages } = data
+  const { personal, experiences, education, skills, languages, projects } = data
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const contactLine = [
@@ -47,16 +47,23 @@ export function ModernMinimalTemplate({ data }: TemplateProps) {
 
       <Page>
         <Stack gap={6}>
-          {/* En-tête — nom en grand, ligne de contact compacte */}
+          {/* En-tête — nom en grand, ligne de contact compacte, photo à droite */}
           <Stack gap={2}>
-            <Text name="fullName" size={26} color={DARK}>
-              {fullName}
-            </Text>
-            {contactLine && (
-              <Text name="contactLine" size={8.5} color={MUTED}>
-                {contactLine}
-              </Text>
-            )}
+            <Row gap={8} alignItems="center">
+              <Box flex={1}>
+                <Stack gap={2}>
+                  <Text name="fullName" size={26} color={DARK}>
+                    {fullName}
+                  </Text>
+                  {contactLine && (
+                    <Text name="contactLine" size={8.5} color={MUTED}>
+                      {contactLine}
+                    </Text>
+                  )}
+                </Stack>
+              </Box>
+              {personal.photo && <Image name="photo" src={personal.photo} width={24} height={30} />}
+            </Row>
             <Box height={0.8} background={ACCENT} />
           </Stack>
 
@@ -127,6 +134,49 @@ export function ModernMinimalTemplate({ data }: TemplateProps) {
                     <Text name={`education-${index}-institution`} size={9} color={BODY}>
                       {[edu.institution, edu.location].filter(Boolean).join(" — ")}
                     </Text>
+                  </Stack>
+                ))}
+              </Stack>
+            </Stack>
+          )}
+
+          {/* Projets */}
+          {projects.length > 0 && (
+            <Stack gap={2}>
+              <SectionTitle title="PROJETS" />
+              <Stack gap={2.5}>
+                {projects.map((project, index) => (
+                  <Stack gap={0.5}>
+                    <Row justifyContent="space-between">
+                      <Text name={`project-${index}-name`} size={9.5} color={DARK}>
+                        {project.name}
+                      </Text>
+                      {project.link && (
+                        <Text name={`project-${index}-link`} size={8} color={ACCENT} align="right">
+                          {project.link}
+                        </Text>
+                      )}
+                    </Row>
+                    {project.technologies && (
+                      <Text name={`project-${index}-technologies`} size={8} color={MUTED}>
+                        {project.technologies}
+                      </Text>
+                    )}
+                    {project.description && (
+                      <Text
+                        name={`project-${index}-block`}
+                        size={9}
+                        lineHeight={1.5}
+                        color={BODY}
+                        overflow="expand"
+                      >
+                        {project.description
+                          .split("\n")
+                          .filter(Boolean)
+                          .map((line) => `• ${line}`)
+                          .join("\n")}
+                      </Text>
+                    )}
                   </Stack>
                 ))}
               </Stack>

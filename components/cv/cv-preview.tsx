@@ -39,4 +39,11 @@ export interface ProfileData {
     name: string
     level: string
   }>
+  projects: Array<{
+    id: string
+    name: string
+    link: string
+    technologies: string
+    description: string
+  }>
 }

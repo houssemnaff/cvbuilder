@@ -34,10 +34,17 @@ export default function NewCVPage() {
   const createCV = async () => {
     if (!selectedTemplate) return
 
-    const templateName = TEMPLATES.find((t) => t.id === selectedTemplate)?.name
-    const newCv = await cvService.createCv(`CV ${templateName}`, selectedTemplate)
+    try {
+      const templateName = TEMPLATES.find((t) => t.id === selectedTemplate)?.name
+      const newCv = await cvService.createCv(`CV ${templateName}`, selectedTemplate)
 
-    router.push(`/dashboard/cvs/${newCv.id}`)
+      router.push(`/dashboard/cvs/${newCv.id}`)
+    } catch (error) {
+      console.error("[NewCVPage] Impossible de créer le CV :", error)
+      if (error instanceof Error && error.message === "Not authenticated") {
+        router.push("/login")
+      }
+    }
   }
 
   if (isLoading) {

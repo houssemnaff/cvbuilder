@@ -10,9 +10,18 @@ interface TemplateProps {
 function HR() {
   return <Box  height={0.3} background="#d1d5db" />
 }
-
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <Stack gap={1.5}>
+      <Text size={11}  spacing={0.8}>
+        {title}
+      </Text>
+      <Box height={0.6} width={14}  />
+    </Stack>
+  )
+}
 export function AcademicTemplate({ data }: TemplateProps) {
-  const { personal, experiences, education, skills, languages } = data
+  const { personal, experiences, education, skills, languages, projects } = data
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const contactLine1 = [personal.address, personal.city, personal.postalCode, personal.country]
@@ -142,35 +151,77 @@ export function AcademicTemplate({ data }: TemplateProps) {
 
           <HR />
 
+          {/* PROJETS — titre fusionné, description en liste à puces */}
+          {projects.length > 0 && (
+            <Stack gap={4}>
+              {projects.map((project, index) => (
+                <Stack gap={1}>
+                  {index === 0 && (
+                    <Text size={11} color="#111827" padding={{ bottom: 2 }}>
+                      PROJETS
+                    </Text>
+                  )}
+                  <Row justifyContent="space-between">
+                    <Text name={`project-${index}-name`} size={10} color="#111827">
+                      {project.name.toUpperCase()}
+                    </Text>
+                    {project.link && (
+                      <Text name={`project-${index}-link`} size={9} color="#6b7280" align="right">
+                        {project.link}
+                      </Text>
+                    )}
+                  </Row>
+                  {project.technologies && (
+                    <Text name={`project-${index}-technologies`} size={8.5} color="#6b7280">
+                      {project.technologies}
+                    </Text>
+                  )}
+                  {project.description && (
+                    <Text
+                      name={`project-${index}-block`}
+                      size={9}
+                      lineHeight={1.5}
+                      color="#374151"
+                      overflow="expand"
+                    >
+                      {project.description
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((line) => `• ${line}`)
+                        .join("\n")}
+                    </Text>
+                  )}
+                </Stack>
+              ))}
+            </Stack>
+          )}
+
+          <HR />
+
           {/* Compétences + Langues — sur deux colonnes */}
           <Row gap={10}>
-            {skills.length > 0 && (
-              <Box flex={1.4}>
-                <MultiVariableText
-                  name="skillsText"
-                  size={9}
-                  lineHeight={1.6}
-                  overflow="expand"
-                  text={"COMPÉTENCES & LANGUES\n\n" + skills.map((_, i) => `• {skill${i}}`).join("\n")}
-                  values={Object.fromEntries(skills.map((s, i) => [`skill${i}`, s]))}
-                />
-              </Box>
-            )}
+                     {skills.length > 0 && (
+                       <Box flex={1.4}>
+                         <Stack gap={2}>
+                           <SectionTitle title="COMPÉTENCES" />
+                           <Text name="skillsText" size={9} lineHeight={1.6} overflow="expand">
+                             {skills.join("   •   ")}
+                           </Text>
+                         </Stack>
+                       </Box>
+                     )}
+         
 
-            {languages.length > 0 && (
-              <Box flex={1}>
-                <MultiVariableText
-                  name="languagesText"
-                  size={9}
-                  lineHeight={1.6}
-                  overflow="expand"
-                  text={"\n\n" + languages.map((_, i) => `• {lang${i}}`).join("\n")}
-                  values={Object.fromEntries(
-                    languages.map((l, i) => [`lang${i}`, `${l.name} (${l.level})`])
-                  )}
-                />
-              </Box>
-            )}
+        {languages.length > 0 && (
+                     <Box flex={1}>
+                       <Stack gap={2}>
+                         <SectionTitle title="LANGUES" />
+                         <Text name="languagesText" size={9} lineHeight={1.6}  overflow="expand">
+                           {languages.map((l) => `${l.name} (${l.level})`).join("\n")}
+                         </Text>
+                       </Stack>
+                     </Box>
+                   )}
           </Row>
         </Stack>
       </Page>
