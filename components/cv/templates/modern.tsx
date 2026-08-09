@@ -77,109 +77,103 @@ export function ModernMinimalTemplate({ data }: TemplateProps) {
             </Stack>
           )}
 
-          {/* Expériences */}
+          {/* Expériences — le titre est fusionné avec le premier item pour ne jamais rester seul en bas de page */}
           {experiences.length > 0 && (
-            <Stack gap={2}>
-              <SectionTitle title="EXPÉRIENCE PROFESSIONNELLE" />
-              <Stack gap={4}>
-                {experiences.map((exp, index) => (
-                  <Stack gap={1}>
-                    <Row justifyContent="space-between">
-                      <Text name={`experience-${index}-position`} size={10} color={DARK}>
-                        {exp.position}
-                      </Text>
-                      <Text name={`experience-${index}-dates`} size={9} color={MUTED} align="right">
-                        {`${exp.startDate} - ${exp.current ? "Présent" : exp.endDate}`}
-                      </Text>
-                    </Row>
-                    <Text name={`experience-${index}-company`} size={9} color={ACCENT}>
-                      {[exp.company, exp.location].filter(Boolean).join(" — ")}
+            <Stack gap={4}>
+              {experiences.map((exp, index) => (
+                <Stack gap={1}>
+                  {index === 0 && <SectionTitle title="EXPÉRIENCE PROFESSIONNELLE" />}
+                  <Row justifyContent="space-between">
+                    <Text name={`experience-${index}-position`} size={10} color={DARK}>
+                      {exp.position}
                     </Text>
-                    {exp.description && (
-                      <Text
-                        name={`experience-${index}-block`}
-                        size={9}
-                        lineHeight={1.5}
-                        color={BODY}
-                        overflow="expand"
-                      >
-                        {exp.description
-                          .split("\n")
-                          .filter(Boolean)
-                          .map((line) => `• ${line}`)
-                          .join("\n")}
-                      </Text>
-                    )}
-                  </Stack>
-                ))}
-              </Stack>
+                    <Text name={`experience-${index}-dates`} size={9} color={MUTED} align="right">
+                      {`${exp.startDate} - ${exp.current ? "Présent" : exp.endDate}`}
+                    </Text>
+                  </Row>
+                  <Text name={`experience-${index}-company`} size={9} color={ACCENT}>
+                    {[exp.company, exp.location].filter(Boolean).join(" — ")}
+                  </Text>
+                  {exp.description && (
+                    <Text
+                      name={`experience-${index}-block`}
+                      size={9}
+                      lineHeight={1.5}
+                      color={BODY}
+                      overflow="expand"
+                    >
+                      {exp.description
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((line) => `• ${line}`)
+                        .join("\n")}
+                    </Text>
+                  )}
+                </Stack>
+              ))}
             </Stack>
           )}
 
           {/* Formation */}
           {education.length > 0 && (
-            <Stack gap={2}>
-              <SectionTitle title="FORMATION" />
-              <Stack gap={2.5}>
-                {education.map((edu, index) => (
-                  <Stack gap={0.5}>
-                    <Row justifyContent="space-between">
-                      <Text name={`education-${index}-degree`} size={9.5} color={DARK}>
-                        {edu.degree}
-                      </Text>
-                      <Text name={`education-${index}-dates`} size={9} color={MUTED} align="right">
-                        {`${edu.startDate} - ${edu.endDate}`}
-                      </Text>
-                    </Row>
-                    <Text name={`education-${index}-institution`} size={9} color={BODY}>
-                      {[edu.institution, edu.location].filter(Boolean).join(" — ")}
+            <Stack gap={2.5}>
+              {education.map((edu, index) => (
+                <Stack gap={0.5}>
+                  {index === 0 && <SectionTitle title="FORMATION" />}
+                  <Row justifyContent="space-between">
+                    <Text name={`education-${index}-degree`} size={9.5} color={DARK}>
+                      {edu.degree}
                     </Text>
-                  </Stack>
-                ))}
-              </Stack>
+                    <Text name={`education-${index}-dates`} size={9} color={MUTED} align="right">
+                      {`${edu.startDate} - ${edu.endDate}`}
+                    </Text>
+                  </Row>
+                  <Text name={`education-${index}-institution`} size={9} color={BODY}>
+                    {[edu.institution, edu.location].filter(Boolean).join(" — ")}
+                  </Text>
+                </Stack>
+              ))}
             </Stack>
           )}
 
           {/* Projets */}
           {projects.length > 0 && (
-            <Stack gap={2}>
-              <SectionTitle title="PROJETS" />
-              <Stack gap={2.5}>
-                {projects.map((project, index) => (
-                  <Stack gap={0.5}>
-                    <Row justifyContent="space-between">
-                      <Text name={`project-${index}-name`} size={9.5} color={DARK}>
-                        {project.name}
-                      </Text>
-                      {project.link && (
-                        <Text name={`project-${index}-link`} size={8} color={ACCENT} align="right">
-                          {project.link}
-                        </Text>
-                      )}
-                    </Row>
-                    {project.technologies && (
-                      <Text name={`project-${index}-technologies`} size={8} color={MUTED}>
-                        {project.technologies}
+            <Stack gap={2.5}>
+              {projects.map((project, index) => (
+                <Stack gap={0.5}>
+                  {index === 0 && <SectionTitle title="PROJETS" />}
+                  <Row justifyContent="space-between">
+                    <Text name={`project-${index}-name`} size={9.5} color={DARK}>
+                      {project.name}
+                    </Text>
+                    {project.link && (
+                      <Text name={`project-${index}-link`} size={8} color={ACCENT} align="right">
+                        {project.link}
                       </Text>
                     )}
-                    {project.description && (
-                      <Text
-                        name={`project-${index}-block`}
-                        size={9}
-                        lineHeight={1.5}
-                        color={BODY}
-                        overflow="expand"
-                      >
-                        {project.description
-                          .split("\n")
-                          .filter(Boolean)
-                          .map((line) => `• ${line}`)
-                          .join("\n")}
-                      </Text>
-                    )}
-                  </Stack>
-                ))}
-              </Stack>
+                  </Row>
+                  {project.technologies && (
+                    <Text name={`project-${index}-technologies`} size={8} color={MUTED}>
+                      {project.technologies}
+                    </Text>
+                  )}
+                  {project.description && (
+                    <Text
+                      name={`project-${index}-block`}
+                      size={9}
+                      lineHeight={1.5}
+                      color={BODY}
+                      overflow="expand"
+                    >
+                      {project.description
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((line) => `• ${line}`)
+                        .join("\n")}
+                    </Text>
+                  )}
+                </Stack>
+              ))}
             </Stack>
           )}
 
