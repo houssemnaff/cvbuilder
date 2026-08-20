@@ -40,7 +40,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
           <FileText className="h-8 w-8 text-primary" />
-          <span className="font-semibold text-2xl">CVBuilder AI</span>
+          <span className="font-semibold text-2xl">CVBuilder </span>
         </div>
 
         <Card>
