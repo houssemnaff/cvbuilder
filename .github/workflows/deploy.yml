@@ -25,7 +25,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:latest .
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}" \
+            -t ${{ env.IMAGE_NAME }}:latest .
 
       - name: Push Docker image
         run: docker push ${{ env.IMAGE_NAME }}:latest
@@ -41,4 +47,6 @@ jobs:
             sudo docker pull ${{ env.IMAGE_NAME }}:latest
             sudo docker stop cvbuilder-app || true
             sudo docker rm cvbuilder-app || true
-            sudo docker run -d -p 80:3000 --name cvbuilder-app ${{ env.IMAGE_NAME }}:latest
+            sudo docker run -d -p 80:3000 \
+              -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
+              --name cvbuilder-app ${{ env.IMAGE_NAME }}:latest
